@@ -1,3 +1,14 @@
+<?php
+require_once dirname(__DIR__, 2) . '/config.php';
+require_once __DIR__ . '/auth.php';
+
+exigirLogin();
+
+$sql = "SELECT id, nome, preco, ativo FROM produtos ORDER BY id DESC";
+$stmt = $pdo->query($sql);
+$produtos = $stmt->fetchAll();
+?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
     <head>
@@ -16,11 +27,7 @@
 
       <nav class="nav flex-column gap-2">
         <a class="nav-link active" href="#">Dashboard</a>
-        <a class="nav-link" href="#">Produtos</a>
-        <a class="nav-link" href="#">Pedidos</a>
-        <a class="nav-link" href="#">Categorias</a>
-        <a class="nav-link" href="#">Configurações</a>
-        <a class="nav-link text-danger" href="#">Sair</a>
+        <a class="nav-link text-danger" href="logout.php">Sair</a>
       </nav>
     </aside>
 
@@ -32,40 +39,11 @@
         </div>
       </div>
 
-      <div class="row g-3 mb-4">
-        <div class="col-12 col-md-6 col-xl-3">
-          <div class="admin-card">
-            <p class="text-muted mb-1">Produtos</p>
-            <h3 class="mb-0">48</h3>
-          </div>
-        </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-          <div class="admin-card">
-            <p class="text-muted mb-1">Pedidos</p>
-            <h3 class="mb-0">12</h3>
-          </div>
-        </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-          <div class="admin-card">
-            <p class="text-muted mb-1">Em destaque</p>
-            <h3 class="mb-0">8</h3>
-          </div>
-        </div>
-
-        <div class="col-12 col-md-6 col-xl-3">
-          <div class="admin-card">
-            <p class="text-muted mb-1">Faturamento</p>
-            <h3 class="mb-0">R$ 2.450</h3>
-          </div>
-        </div>
-      </div>
 
       <div class="admin-card">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h2 class="h5 mb-0">Produtos recentes</h2>
-          <button class="btn btn-dark btn-sm">Novo produto</button>
+          <a href="product-create.php" class="btn btn-dark btn-sm">Novo produto</a>
         </div>
 
         <div class="table-responsive">
@@ -79,15 +57,47 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Produto Exemplo</td>
-                <td>R$ 49,90</td>
-                <td><span class="badge text-bg-success">Ativo</span></td>
-                <td class="text-end">
-                  <button class="btn btn-outline-dark btn-sm">Editar</button>
-                </td>
-              </tr>
-            </tbody>
+  <?php if (empty($produtos)): ?>
+    <tr>
+      <td colspan="4" class="text-center text-muted">Nenhum produto cadastrado.</td>
+    </tr>
+  <?php else: ?>
+    <?php foreach ($produtos as $produto): ?>
+      <tr>
+        <td><?= htmlspecialchars($produto['nome']) ?></td>
+        <td>R$ <?= number_format((float)$produto['preco'], 2, ',', '.') ?></td>
+        <td>
+          <?php if ((int)$produto['ativo'] === 1): ?>
+            <span class="badge text-bg-success">Ativo</span>
+          <?php else: ?>
+            <span class="badge text-bg-secondary">Inativo</span>
+          <?php endif; ?>
+        </td>
+        <td class="text-end">
+          <a href="product-edit.php?id=<?= $produto['id'] ?>" class="btn btn-outline-dark btn-sm">
+            Editar
+          </a>
+
+          <a
+            href="product-toggle.php?id=<?= $produto['id'] ?>"
+            class="btn btn-outline-warning btn-sm"
+            onclick="return confirm('Deseja alterar o status deste produto?');"
+          >
+            <?= (int)$produto['ativo'] === 1 ? 'Desativar' : 'Ativar' ?>
+          </a>
+
+          <a
+            href="product-delete.php?id=<?= $produto['id'] ?>"
+            class="btn btn-outline-danger btn-sm"
+            onclick="return confirm('Deseja excluir este produto permanentemente?');"
+          >
+            Excluir
+          </a>
+        </td>
+      </tr>
+    <?php endforeach; ?>
+  <?php endif; ?>
+</tbody>
           </table>
         </div>
       </div>

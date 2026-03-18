@@ -1,3 +1,15 @@
+
+@font-face {
+  font-family: "Moderna";
+  src: url("../fonts/MODERNA_.TTF") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.logo {
+  font-family: "Moderna", sans-serif;
+}
+
 .admin-body {
   background: #f5f6f8;
 }

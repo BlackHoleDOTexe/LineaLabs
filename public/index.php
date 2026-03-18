@@ -1,75 +1,20 @@
 <?php
-$produtos = [
-    [
-        'id' => 1,
-        'nome' => 'Nome do Produto 1',
-        'descricao' => 'Descrição do produto aqui.',
-        'descricao_completa' => 'Descrição completa do produto 1 para aparecer no modal.',
-        'preco' => '49,90',
-        'imagem' => 'img/template_1.jpg'
-    ],
-    [
-        'id' => 2,
-        'nome' => 'Nome do Produto 2',
-        'descricao' => 'Descrição do produto aqui.',
-        'descricao_completa' => 'Descrição completa do produto 2 para aparecer no modal.',
-        'preco' => '59,90',
-        'imagem' => 'img/template_1.jpg'
-    ]
-    ,
-    [
-        'id' => 3,
-        'nome' => 'Nome do Produto 3',
-        'descricao' => 'Descrição do produto aqui.',
-        'descricao_completa' => 'Descrição completa do produto 3 para aparecer no modal.',
-        'preco' => '69,90',
-        'imagem' => 'img/template_1.jpg'
-    ]
-    ,
-    [
-        'id' => 4,
-        'nome' => 'Nome do Produto 4',
-        'descricao' => 'Descrição do produto aqui.',
-        'descricao_completa' => 'Descrição completa do produto 4 para aparecer no modal.',
-        'preco' => '79,90',
-        'imagem' => 'img/template_1.jpg'
-    ],
-        [
-        'id' => 5,
-        'nome' => 'Nome do Produto 5',
-        'descricao' => 'Descrição do produto aqui.',
-        'descricao_completa' => 'Descrição completa do produto 5 para aparecer no modal.',
-        'preco' => '49,90',
-        'imagem' => 'img/template_1.jpg'
-    ],
-    [
-        'id' => 6,
-        'nome' => 'Nome do Produto 6',
-        'descricao' => 'Descrição do produto aqui.',
-        'descricao_completa' => 'Descrição completa do produto 6 para aparecer no modal.',
-        'preco' => '59,90',
-        'imagem' => 'img/template_1.jpg'
-    ]
-    ,
-    [
-        'id' => 7,
-        'nome' => 'Nome do Produto 7',
-        'descricao' => 'Descrição do produto aqui.',
-        'descricao_completa' => 'Descrição completa do produto 7 para aparecer no modal.',
-        'preco' => '69,90',
-        'imagem' => 'img/template_1.jpg'
-    ]
-    ,
-    [
-        'id' => 8,
-        'nome' => 'Nome do Produto 8',
-        'descricao' => 'Descrição do produto aqui.',
-        'descricao_completa' => 'Descrição completa do produto 8 para aparecer no modal.',
-        'preco' => '79,90',
-        'imagem' => 'img/template_1.jpg'
-    ]
-];
+require_once dirname(__DIR__) . '/config.php';
+
+$sqlProdutos = "SELECT * FROM produtos WHERE ativo = 1 ORDER BY id DESC";
+$produtos = $pdo->query($sqlProdutos)->fetchAll();
+
+$sqlImagens = "SELECT * FROM produto_imagens ORDER BY produto_id, ordem, id";
+$imagens = $pdo->query($sqlImagens)->fetchAll();
+
+$imagensPorProduto = [];
+
+foreach ($imagens as $imagem) {
+    $produtoId = $imagem['produto_id'];
+    $imagensPorProduto[$produtoId][] = $imagem;
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -93,50 +38,56 @@ $produtos = [
   </div>
 </section>
 
-  <section id="catalogo" class="catalogo container-fluid bg-2 px-3 px-md-0">
-    <h2 class="mb-4">Destaques:</h2>
+<section id="catalogo" class="catalogo container-fluid bg-2 px-3 px-md-0">
+  <h2 class="mb-4">Destaques:</h2>
 
-    <div class="row g-3 container">
-      <?php foreach ($produtos as $produto): ?>
-        <div class="col-6 col-md-4 col-lg-3">
-          <div class="card h-100">
-            <img
-              src="<?= htmlspecialchars($produto['imagem']) ?>"
-              class="card-img-top produto-img"
-              alt="<?= htmlspecialchars($produto['nome']) ?>"
+  <div class="row g-3 container">
+    <?php foreach ($produtos as $produto): ?>
+      <?php
+        $imagensDoProduto = $imagensPorProduto[$produto['id']] ?? [];
+        $primeiraImagem = $imagensDoProduto[0]['arquivo'] ?? 'default.png';
+      ?>
+
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="card h-100">
+          <img
+            src="/uploads/products/<?= htmlspecialchars($primeiraImagem) ?>"
+            class="card-img-top produto-img"
+            alt="<?= htmlspecialchars($produto['nome']) ?>"
+          >
+
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">
+              <?= htmlspecialchars($produto['nome']) ?>
+            </h5>
+
+            <p class="card-text">
+              <?= htmlspecialchars(mb_strimwidth($produto['descricao'] ?? '', 0, 80, '...')) ?>
+            </p>
+
+            <p class="preco">
+              R$ <?= number_format((float)($produto['preco'] ?? 0), 2, ',', '.') ?>
+            </p>
+
+            <button
+              type="button"
+              class="btn btn-dark w-100 mt-auto"
+              data-bs-toggle="modal"
+              data-bs-target="#modalProduto<?= $produto['id'] ?>"
             >
-
-            <div class="card-body d-flex flex-column">
-              <h5 class="card-title"><?= htmlspecialchars($produto['nome']) ?></h5>
-
-              <p class="card-text">
-                <?= htmlspecialchars($produto['descricao']) ?>
-              </p>
-
-              <p class="preco">R$ <?= htmlspecialchars($produto['preco']) ?></p>
-
-              <button
-                type="button"
-                class="btn btn-dark w-100 mt-auto"
-                data-bs-toggle="modal"
-                data-bs-target="#modalProduto<?= $produto['id'] ?>"
-              >
-                Ver detalhes
-              </button>
-            </div>
+              Ver detalhes
+            </button>
           </div>
         </div>
-      <?php endforeach; ?>
-    </div>
-  </section>
+      </div>
+    <?php endforeach; ?>
+  </div>
+</section>
 
-  <footer class="footer bg-dark text-light">
-
+<footer class="footer bg-dark text-light">
   <div class="container py-4">
-
     <div class="row g-4">
 
-      <!-- Marca -->
       <div class="col-12 col-md-4">
         <h4 class="logo">Linea Labs</h4>
         <p class="small">
@@ -144,7 +95,6 @@ $produtos = [
         </p>
       </div>
 
-      <!-- Contato -->
       <div class="col-12 col-md-4">
         <h6>Contato</h6>
 
@@ -155,10 +105,8 @@ $produtos = [
         <p class="mb-1">
           Instagram: @linealabs.br
         </p>
-
       </div>
 
-      <!-- Links -->
       <div class="col-12 col-md-4">
         <h6>Links</h6>
 
@@ -170,11 +118,9 @@ $produtos = [
         <a href="#" class="footer-link">
           Sobre
         </a>
-
       </div>
 
     </div>
-
   </div>
 
   <div class="text-center py-2">
@@ -182,48 +128,107 @@ $produtos = [
       © <?= date('Y') ?> Linea Labs — Todos os direitos reservados
     </small>
   </div>
-
 </footer>
 
-  <?php foreach ($produtos as $produto): ?>
-    <div class="modal fade" id="modalProduto<?= $produto['id'] ?>" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content">
+<?php foreach ($produtos as $produto): ?>
+  <?php $imagensDoProduto = $imagensPorProduto[$produto['id']] ?? []; ?>
 
-          <div class="modal-header">
-            <h5 class="modal-title"><?= htmlspecialchars($produto['nome']) ?></h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-          </div>
+  <div class="modal fade" id="modalProduto<?= $produto['id'] ?>" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
 
-          <div class="modal-body">
-            <div class="container py-4">
-              <div class="row g-4 align-items-start">
-                <div class="col-12 col-md-6">
+        <div class="modal-header">
+          <h5 class="modal-title"><?= htmlspecialchars($produto['nome']) ?></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="container py-4">
+            <div class="row g-4 align-items-start">
+
+              <div class="col-12 col-md-6">
+                <?php if (!empty($imagensDoProduto)): ?>
+                  <div id="carouselProduto<?= $produto['id'] ?>" class="carousel slide">
+                    <div class="carousel-inner rounded">
+
+                      <?php foreach ($imagensDoProduto as $index => $imagem): ?>
+                        <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                          <img
+                            src="/uploads/products/<?= htmlspecialchars($imagem['arquivo']) ?>"
+                            class="d-block w-100 img-fluid rounded"
+                            alt="<?= htmlspecialchars($produto['nome']) ?>"
+                          >
+                        </div>
+                      <?php endforeach; ?>
+
+                    </div>
+
+                    <?php if (count($imagensDoProduto) > 1): ?>
+                      <button
+                        class="carousel-control-prev"
+                        type="button"
+                        data-bs-target="#carouselProduto<?= $produto['id'] ?>"
+                        data-bs-slide="prev"
+                      >
+                        <span class="carousel-control-prev-icon"></span>
+                      </button>
+
+                      <button
+                        class="carousel-control-next"
+                        type="button"
+                        data-bs-target="#carouselProduto<?= $produto['id'] ?>"
+                        data-bs-slide="next"
+                      >
+                        <span class="carousel-control-next-icon"></span>
+                      </button>
+                    <?php endif; ?>
+                  </div>
+                <?php else: ?>
                   <img
-                    src="<?= htmlspecialchars($produto['imagem']) ?>"
+                    src="/uploads/products/default.png"
                     class="img-fluid rounded"
-                    alt="<?= htmlspecialchars($produto['nome']) ?>"
+                    alt="Imagem padrão"
                   >
-                </div>
-
-                <div class="col-12 col-md-6">
-                  <h2><?= htmlspecialchars($produto['nome']) ?></h2>
-                  <p class="preco fs-3">R$ <?= htmlspecialchars($produto['preco']) ?></p>
-                  <p><?= htmlspecialchars($produto['descricao_completa']) ?></p>
-
-                  <a href="#" class="btn btn-dark w-100 w-md-auto">
-                    Pedir pelo WhatsApp
-                  </a>
-                </div>
+                <?php endif; ?>
               </div>
+
+              <div class="col-12 col-md-6">
+                <h2><?= htmlspecialchars($produto['nome']) ?></h2>
+
+                <p class="preco fs-3">
+                  R$ <?= number_format((float)($produto['preco'] ?? 0), 2, ',', '.') ?>
+                </p>
+
+                <p>
+                  <?= nl2br(htmlspecialchars($produto['descricao'] ?? '')) ?>
+                </p>
+
+                <?php
+                $mensagem = "Olá, gostaria de solicitar um orçamento do produto " . $produto['nome'];
+
+                $linkWhats =
+                  "https://wa.me/5544997554052?text=" .
+                  urlencode($mensagem);
+                ?>
+
+                <a
+                  href="<?= $linkWhats ?>"
+                  target="_blank"
+                  class="btn btn-success w-100 w-md-auto"
+                >
+                  Pedir pelo WhatsApp
+                </a>
+              </div>
+
             </div>
           </div>
-
         </div>
+
       </div>
     </div>
-  <?php endforeach; ?>
+  </div>
+<?php endforeach; ?>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
