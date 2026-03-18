@@ -1,0 +1,23 @@
+@font-face {
+  font-family: "Moderna";
+  src: url("../fonts/MODERNA_.TTF") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.logo {
+  font-family: "Moderna", sans-serif;
+}
+
+.admin-login-body {
+  background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
