@@ -1,0 +1,39 @@
+.admin-body {
+  background: #f5f6f8;
+}
+
+.admin-wrapper {
+  min-height: 100vh;
+  display: flex;
+}
+
+.admin-sidebar {
+  width: 260px;
+  background: #111;
+  color: #fff;
+  padding: 24px;
+}
+
+.admin-sidebar .nav-link {
+  color: #cfcfcf;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.admin-sidebar .nav-link:hover,
+.admin-sidebar .nav-link.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.admin-content {
+  flex: 1;
+  padding: 24px;
+}
+
+.admin-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+}
