@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__DIR__) . '/config.php';
+require_once dirname(__DIR__) . '/private/config.php';
 
 $sqlProdutos = "SELECT * FROM produtos WHERE ativo = 1 ORDER BY id DESC";
 $produtos = $pdo->query($sqlProdutos)->fetchAll();
@@ -22,6 +22,7 @@ foreach ($imagens as $imagem) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Linea Labs</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="css/index_style.css?v=6">
 </head>
 <body>
@@ -48,38 +49,40 @@ foreach ($imagens as $imagem) {
         $primeiraImagem = $imagensDoProduto[0]['arquivo'] ?? 'default.png';
       ?>
 
-      <div class="col-6 col-md-4 col-lg-3">
-        <div class="card h-100">
-          <img
-            src="/uploads/products/<?= htmlspecialchars($primeiraImagem) ?>"
-            class="card-img-top produto-img"
-            alt="<?= htmlspecialchars($produto['nome']) ?>"
-          >
-
-          <div class="card-body d-flex flex-column">
-            <h5 class="card-title">
-              <?= htmlspecialchars($produto['nome']) ?>
-            </h5>
-
-            <p class="card-text">
-              <?= htmlspecialchars(mb_strimwidth($produto['descricao'] ?? '', 0, 80, '...')) ?>
-            </p>
-
-            <p class="preco">
-              R$ <?= number_format((float)($produto['preco'] ?? 0), 2, ',', '.') ?>
-            </p>
-
-            <button
-              type="button"
-              class="btn btn-dark w-100 mt-auto"
-              data-bs-toggle="modal"
-              data-bs-target="#modalProduto<?= $produto['id'] ?>"
+        <div class="col-6 col-md-4 col-lg-3">
+          <div class="card h-100">
+            <img
+              src="/uploads/products/<?= htmlspecialchars($primeiraImagem) ?>"
+              class="card-img-top produto-img"
+              alt="<?= htmlspecialchars($produto['nome']) ?>"
             >
-              Ver detalhes
-            </button>
+
+            <div class="card-body d-flex flex-column">
+              <h5 class="product-title">
+                <?= htmlspecialchars($produto['nome']) ?>
+              </h5>
+
+              <p class="card-text product-description">
+                <?= htmlspecialchars(mb_strimwidth($produto['descricao'] ?? '', 0, 80, '...')) ?>
+              </p>
+
+              <div class="mt-auto">
+                <p class="preco text-end mb-2">
+                  R$ <?= number_format((float)($produto['preco'] ?? 0), 2, ',', '.') ?>
+                </p>
+
+                <button
+                  type="button"
+                  class="btn btn-dark w-100"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalProduto<?= $produto['id'] ?>"
+                >
+                  Ver detalhes
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
     <?php endforeach; ?>
   </div>
 </section>
@@ -102,9 +105,9 @@ foreach ($imagens as $imagem) {
           WhatsApp: (44) 99755-4052
         </p>
 
-        <p class="mb-1">
+        <a href="https://www.instagram.com/linealabs.br/" class="mb-1 footer-link" target="_blank">
           Instagram: @linealabs.br
-        </p>
+    </a>
       </div>
 
       <div class="col-12 col-md-4">
@@ -149,13 +152,14 @@ foreach ($imagens as $imagem) {
               <div class="col-12 col-md-6">
                 <?php if (!empty($imagensDoProduto)): ?>
                   <div id="carouselProduto<?= $produto['id'] ?>" class="carousel slide">
+                    
                     <div class="carousel-inner rounded">
 
                       <?php foreach ($imagensDoProduto as $index => $imagem): ?>
                         <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
                           <img
                             src="/uploads/products/<?= htmlspecialchars($imagem['arquivo']) ?>"
-                            class="d-block w-100 img-fluid rounded"
+                            class="d-block produto-img img-fluid rounded"
                             alt="<?= htmlspecialchars($produto['nome']) ?>"
                           >
                         </div>
@@ -199,7 +203,7 @@ foreach ($imagens as $imagem) {
                   R$ <?= number_format((float)($produto['preco'] ?? 0), 2, ',', '.') ?>
                 </p>
 
-                <p>
+                <p class="product-description mb-4">
                   <?= nl2br(htmlspecialchars($produto['descricao'] ?? '')) ?>
                 </p>
 
@@ -214,8 +218,9 @@ foreach ($imagens as $imagem) {
                 <a
                   href="<?= $linkWhats ?>"
                   target="_blank"
-                  class="btn btn-success w-100 w-md-auto"
+                  class="btn btn-success w-100 w-md-auto d-flex align-items-center justify-content-center gap-2"
                 >
+                  <i class="bi bi-whatsapp"></i>
                   Pedir pelo WhatsApp
                 </a>
               </div>
