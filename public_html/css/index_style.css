@@ -133,6 +133,10 @@ html {
   font-weight: bold;
 }
 
+.btn-close{
+  background-color: #7a7a7a;
+}
+
 @media (max-width: 768px) {
   .hero-svg-bg {
     width: 95vw;
@@ -179,4 +183,32 @@ html {
   background-color: rgba(0, 0, 0, 0.69);
   min-height: 100%;
   min-width: 100%;
+}
+
+.pagination {
+
+  --bs-pagination-color: #e0e0e0;
+
+  --bs-pagination-bg: #a7a7a7;
+
+  --bs-pagination-border-color: #a7a7a7;
+
+  --bs-pagination-hover-color: #fff;
+
+  --bs-pagination-hover-bg: #000;
+
+  --bs-pagination-hover-border-color: #000;
+
+  --bs-pagination-active-color: #fff;
+
+  --bs-pagination-active-bg: #212529;
+
+  --bs-pagination-active-border-color: #212529;
+
+}
+
+.btn-outline-secondary{
+  color: white;
+  background-color: rgb(255, 0, 0);
+  border-color: red;
 }

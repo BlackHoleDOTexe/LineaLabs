@@ -1,26 +1,13 @@
 <?php
 require_once dirname(__DIR__) . '/private/config.php';
-
-$sqlProdutos = "SELECT * FROM produtos WHERE ativo = 1 ORDER BY id DESC";
-$produtos = $pdo->query($sqlProdutos)->fetchAll();
-
-$sqlImagens = "SELECT * FROM produto_imagens ORDER BY produto_id, ordem, id";
-$imagens = $pdo->query($sqlImagens)->fetchAll();
-
-$imagensPorProduto = [];
-
-foreach ($imagens as $imagem) {
-    $produtoId = $imagem['produto_id'];
-    $imagensPorProduto[$produtoId][] = $imagem;
-}
 ?>
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Linea Labs</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <link rel="stylesheet" href="css/index_style.css?v=6">
@@ -29,7 +16,7 @@ foreach ($imagens as $imagem) {
 
 <section class="hero container-fluid">
   <div class="hero-bg-svg">
-    <?php include 'img/linea-labs-logo.svg'; ?>
+    <?php include __DIR__ . '/img/linea-labs-logo.svg'; ?>
   </div>
 
   <div class="hero-content">
@@ -40,50 +27,12 @@ foreach ($imagens as $imagem) {
 </section>
 
 <section id="catalogo" class="catalogo container-fluid bg-2 px-3 px-md-0">
-  <h2 class="mb-4">Destaques:</h2>
+  <div class="container py-4">
+    <h2 class="mb-4">Destaques:</h2>
 
-  <div class="row g-3 container">
-    <?php foreach ($produtos as $produto): ?>
-      <?php
-        $imagensDoProduto = $imagensPorProduto[$produto['id']] ?? [];
-        $primeiraImagem = $imagensDoProduto[0]['arquivo'] ?? 'default.png';
-      ?>
-
-        <div class="col-6 col-md-4 col-lg-3">
-          <div class="card h-100">
-            <img
-              src="/uploads/products/<?= htmlspecialchars($primeiraImagem) ?>"
-              class="card-img-top produto-img"
-              alt="<?= htmlspecialchars($produto['nome']) ?>"
-            >
-
-            <div class="card-body d-flex flex-column">
-              <h5 class="product-title">
-                <?= htmlspecialchars($produto['nome']) ?>
-              </h5>
-
-              <p class="card-text product-description">
-                <?= htmlspecialchars(mb_strimwidth($produto['descricao'] ?? '', 0, 80, '...')) ?>
-              </p>
-
-              <div class="mt-auto">
-                <p class="preco text-end mb-2">
-                  R$ <?= number_format((float)($produto['preco'] ?? 0), 2, ',', '.') ?>
-                </p>
-
-                <button
-                  type="button"
-                  class="btn btn-dark w-100"
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalProduto<?= $produto['id'] ?>"
-                >
-                  Ver detalhes
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-    <?php endforeach; ?>
+    <div id="catalogo-container">
+      <?php include __DIR__ . '/catalogo.php'; ?>
+    </div>
   </div>
 </section>
 
@@ -107,13 +56,13 @@ foreach ($imagens as $imagem) {
 
         <a href="https://www.instagram.com/linealabs.br/" class="mb-1 footer-link" target="_blank">
           Instagram: @linealabs.br
-    </a>
+        </a>
       </div>
 
       <div class="col-12 col-md-4">
         <h6>Links</h6>
 
-        <a href="#" class="footer-link">
+        <a href="#catalogo" class="footer-link">
           Catálogo
         </a>
         <br>
@@ -133,107 +82,70 @@ foreach ($imagens as $imagem) {
   </div>
 </footer>
 
-<?php foreach ($produtos as $produto): ?>
-  <?php $imagensDoProduto = $imagensPorProduto[$produto['id']] ?? []; ?>
-
-  <div class="modal fade" id="modalProduto<?= $produto['id'] ?>" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
-      <div class="modal-content">
-
-        <div class="modal-header">
-          <h5 class="modal-title"><?= htmlspecialchars($produto['nome']) ?></h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-        </div>
-
-        <div class="modal-body">
-          <div class="container py-4">
-            <div class="row g-4 align-items-start">
-
-              <div class="col-12 col-md-6">
-                <?php if (!empty($imagensDoProduto)): ?>
-                  <div id="carouselProduto<?= $produto['id'] ?>" class="carousel slide">
-                    
-                    <div class="carousel-inner rounded">
-
-                      <?php foreach ($imagensDoProduto as $index => $imagem): ?>
-                        <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
-                          <img
-                            src="/uploads/products/<?= htmlspecialchars($imagem['arquivo']) ?>"
-                            class="d-block produto-img img-fluid rounded"
-                            alt="<?= htmlspecialchars($produto['nome']) ?>"
-                          >
-                        </div>
-                      <?php endforeach; ?>
-
-                    </div>
-
-                    <?php if (count($imagensDoProduto) > 1): ?>
-                      <button
-                        class="carousel-control-prev"
-                        type="button"
-                        data-bs-target="#carouselProduto<?= $produto['id'] ?>"
-                        data-bs-slide="prev"
-                      >
-                        <span class="carousel-control-prev-icon"></span>
-                      </button>
-
-                      <button
-                        class="carousel-control-next"
-                        type="button"
-                        data-bs-target="#carouselProduto<?= $produto['id'] ?>"
-                        data-bs-slide="next"
-                      >
-                        <span class="carousel-control-next-icon"></span>
-                      </button>
-                    <?php endif; ?>
-                  </div>
-                <?php else: ?>
-                  <img
-                    src="/uploads/products/default.png"
-                    class="img-fluid rounded"
-                    alt="Imagem padrão"
-                  >
-                <?php endif; ?>
-              </div>
-
-              <div class="col-12 col-md-6">
-                <h2><?= htmlspecialchars($produto['nome']) ?></h2>
-
-                <p class="preco fs-3">
-                  R$ <?= number_format((float)($produto['preco'] ?? 0), 2, ',', '.') ?>
-                </p>
-
-                <p class="product-description mb-4">
-                  <?= nl2br(htmlspecialchars($produto['descricao'] ?? '')) ?>
-                </p>
-
-                <?php
-                $mensagem = "Olá, gostaria de solicitar um orçamento do produto " . $produto['nome'];
-
-                $linkWhats =
-                  "https://wa.me/5544997554052?text=" .
-                  urlencode($mensagem);
-                ?>
-
-                <a
-                  href="<?= $linkWhats ?>"
-                  target="_blank"
-                  class="btn btn-success w-100 w-md-auto d-flex align-items-center justify-content-center gap-2"
-                >
-                  <i class="bi bi-whatsapp"></i>
-                  Pedir pelo WhatsApp
-                </a>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-<?php endforeach; ?>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  async function carregarPagina(pagina = 1, busca = '') {
+    try {
+      const params = new URLSearchParams();
+      params.set('pagina', pagina);
+
+      if (busca.trim() !== '') {
+        params.set('busca', busca);
+      }
+
+      const url = `catalogo.php?${params.toString()}`;
+
+      const resposta = await fetch(url, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+
+      if (!resposta.ok) {
+        throw new Error(`Erro HTTP: ${resposta.status}`);
+      }
+
+      const html = await resposta.text();
+      document.getElementById('catalogo-container').innerHTML = html;
+
+      history.pushState({}, '', `?${params.toString()}#catalogo`);
+
+      conectarFormularioBusca();
+    } catch (erro) {
+      console.error('Erro ao carregar catálogo:', erro);
+    }
+  }
+
+  function buscarProdutos(event) {
+    event.preventDefault();
+
+    const campoBusca = document.getElementById('campo-busca');
+    const busca = campoBusca ? campoBusca.value.trim() : '';
+
+    carregarPagina(1, busca);
+  }
+
+  function conectarFormularioBusca() {
+    const formBusca = document.getElementById('form-busca-catalogo');
+
+    if (formBusca && !formBusca.dataset.listenerAttached) {
+      formBusca.addEventListener('submit', buscarProdutos);
+      formBusca.dataset.listenerAttached = 'true';
+    }
+  }
+
+  window.addEventListener('popstate', () => {
+    const params = new URLSearchParams(window.location.search);
+    const pagina = parseInt(params.get('pagina')) || 1;
+    const busca = params.get('busca') || '';
+
+    carregarPagina(pagina, busca);
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    conectarFormularioBusca();
+  });
+</script>
 </body>
 </html>
