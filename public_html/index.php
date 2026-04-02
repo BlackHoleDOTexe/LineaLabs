@@ -14,29 +14,40 @@ require_once dirname(__DIR__) . '/private/config.php';
 </head>
 <body>
 
-<section class="hero container-fluid">
-  <div class="hero-bg-svg">
+<section class="hero container-fluid ">
+  <div class="hero-bg-svg text-focus-in">
     <?php include __DIR__ . '/img/linea-labs-logo.svg'; ?>
   </div>
 
   <div class="hero-content">
-    <h1 class="display-2 logo tracking-in-expand">Linea Labs</h1>
-    <p class="lead mb-4 tracking-in-expand">O detalhe que faltava.</p>
-    <a href="#catalogo" class="btn btn-dark btn-lg tracking-in-expand">Ver Catálogo</a>
+    <h1 class="display-2 logo text-focus-in">Linea Labs</h1>
+    <p class="lead mb-4 text-focus-in">O detalhe que faltava.</p>
+    <a href="#catalogo" class="btn btn-dark btn-lg text-focus-in">Ver Catálogo</a>
   </div>
 </section>
 
 <section id="catalogo" class="catalogo container-fluid bg-2 px-3 px-md-0">
   <div class="container py-4">
-    <h2 class="mb-4">Destaques:</h2>
+    <h2 class="mb-4 justify-content-center text-center logo animar-quando-aparecer">NOSSOS PRODUTOS PERSONALIZADOS</h2>
 
-    <div id="catalogo-container">
+    <div id="catalogo-container" class="animar-quando-aparecer">
       <?php include __DIR__ . '/catalogo.php'; ?>
     </div>
   </div>
 </section>
 
-<footer class="footer bg-dark text-light">
+<section id="orçamento-personalizado" class="container-fluid bg-3 py-4">
+  <div class="container py-4 justify-content-center text-center">
+    <h2 class="mb-4 logo animar-quando-aparecer">Pedido Personalizado</h2>
+    <h4 class="mb-4 animar-quando-aparecer">
+      Não encontrou exatamente o que desejava em nosso catálogo? Entre em contato para solicitar um orçamento personalizado. Desenvolvemos peças e projetos sob medida, com atenção aos detalhes, qualidade no acabamento e foco na sua necessidade.
+</h4>
+    <a href="https://wa.me/5544997554052" class="btn btn-dark btn-lg bi bi-whatsapp animar-quando-aparecer" target="_blank">
+      Solicitar Orçamento
+    </a>
+  </div>
+
+<footer class="footer bg-dark text-light animar-quando-aparecer">
   <div class="container py-4">
     <div class="row g-4">
 
@@ -83,69 +94,7 @@ require_once dirname(__DIR__) . '/private/config.php';
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/index.js?v=6"></script>
 
-<script>
-  async function carregarPagina(pagina = 1, busca = '') {
-    try {
-      const params = new URLSearchParams();
-      params.set('pagina', pagina);
-
-      if (busca.trim() !== '') {
-        params.set('busca', busca);
-      }
-
-      const url = `catalogo.php?${params.toString()}`;
-
-      const resposta = await fetch(url, {
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      });
-
-      if (!resposta.ok) {
-        throw new Error(`Erro HTTP: ${resposta.status}`);
-      }
-
-      const html = await resposta.text();
-      document.getElementById('catalogo-container').innerHTML = html;
-
-      history.pushState({}, '', `?${params.toString()}#catalogo`);
-
-      conectarFormularioBusca();
-    } catch (erro) {
-      console.error('Erro ao carregar catálogo:', erro);
-    }
-  }
-
-  function buscarProdutos(event) {
-    event.preventDefault();
-
-    const campoBusca = document.getElementById('campo-busca');
-    const busca = campoBusca ? campoBusca.value.trim() : '';
-
-    carregarPagina(1, busca);
-  }
-
-  function conectarFormularioBusca() {
-    const formBusca = document.getElementById('form-busca-catalogo');
-
-    if (formBusca && !formBusca.dataset.listenerAttached) {
-      formBusca.addEventListener('submit', buscarProdutos);
-      formBusca.dataset.listenerAttached = 'true';
-    }
-  }
-
-  window.addEventListener('popstate', () => {
-    const params = new URLSearchParams(window.location.search);
-    const pagina = parseInt(params.get('pagina')) || 1;
-    const busca = params.get('busca') || '';
-
-    carregarPagina(pagina, busca);
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    conectarFormularioBusca();
-  });
-</script>
 </body>
 </html>

@@ -179,7 +179,7 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
         $primeiraImagem = $imagensDoProduto[0]['arquivo'] ?? 'default.png';
       ?>
 
-      <div class="col-6 col-md-4 col-lg-3">
+      <div class="col-6 col-md-4 col-lg-3 animar-quando-aparecer">
         <div class="card h-100">
           <img
             src="/uploads/products/<?= htmlspecialchars($primeiraImagem) ?>"
