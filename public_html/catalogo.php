@@ -76,7 +76,6 @@ $stmtProdutos->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmtProdutos->execute();
 $produtos = $stmtProdutos->fetchAll();
 
-
 $sqlImagens = "SELECT *
                FROM produto_imagens
                ORDER BY produto_id, ordem, id";
@@ -139,7 +138,6 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
 }
 ?>
 
-<!-- BUSCA -->
 <form class="mb-4" id="form-busca-catalogo">
   <div class="input-group">
     <input
@@ -183,7 +181,7 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
         <div class="card h-100">
           <img
             src="/uploads/products/<?= htmlspecialchars($primeiraImagem) ?>"
-            class="card-img-top produto-img"
+            class="card-img-top produto-card-img"
             alt="<?= htmlspecialchars($produto['nome']) ?>"
           >
 
@@ -256,7 +254,7 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
                         <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
                           <img
                             src="/uploads/products/<?= htmlspecialchars($imagem['arquivo']) ?>"
-                            class="d-block produto-img img-fluid rounded"
+                            class="d-block w-100 produto-modal-img rounded"
                             alt="<?= htmlspecialchars($produto['nome']) ?>"
                           >
                         </div>
@@ -287,7 +285,7 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
                 <?php else: ?>
                   <img
                     src="/uploads/products/default.png"
-                    class="img-fluid rounded"
+                    class="img-fluid rounded produto-modal-img"
                     alt="Imagem padrão"
                   >
                 <?php endif; ?>

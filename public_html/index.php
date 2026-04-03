@@ -14,7 +14,7 @@ require_once dirname(__DIR__) . '/private/config.php';
 </head>
 <body>
 
-<section class="hero container-fluid ">
+<section class="hero container-fluid">
   <div class="hero-bg-svg text-focus-in">
     <?php include __DIR__ . '/img/linea-labs-logo.svg'; ?>
   </div>
@@ -30,7 +30,7 @@ require_once dirname(__DIR__) . '/private/config.php';
   <div class="container py-4">
     <h2 class="mb-4 justify-content-center text-center logo animar-quando-aparecer">NOSSOS PRODUTOS PERSONALIZADOS</h2>
 
-    <div id="catalogo-container" class="animar-quando-aparecer">
+    <div id="catalogo-container">
       <?php include __DIR__ . '/catalogo.php'; ?>
     </div>
   </div>
@@ -41,11 +41,12 @@ require_once dirname(__DIR__) . '/private/config.php';
     <h2 class="mb-4 logo animar-quando-aparecer">Pedido Personalizado</h2>
     <h4 class="mb-4 animar-quando-aparecer">
       Não encontrou exatamente o que desejava em nosso catálogo? Entre em contato para solicitar um orçamento personalizado. Desenvolvemos peças e projetos sob medida, com atenção aos detalhes, qualidade no acabamento e foco na sua necessidade.
-</h4>
+    </h4>
     <a href="https://wa.me/5544997554052" class="btn btn-dark btn-lg bi bi-whatsapp animar-quando-aparecer" target="_blank">
       Solicitar Orçamento
     </a>
   </div>
+</section>
 
 <footer class="footer bg-dark text-light animar-quando-aparecer">
   <div class="container py-4">
