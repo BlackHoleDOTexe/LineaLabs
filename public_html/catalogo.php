@@ -92,6 +92,8 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
     if ($totalPaginas <= 1) {
         return;
     }
+
+    $buscaSegura = htmlspecialchars($busca, ENT_QUOTES, 'UTF-8');
     ?>
     <nav aria-label="Paginação do catálogo">
       <ul class="pagination justify-content-center mb-0">
@@ -100,9 +102,10 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
           <a
             class="page-link"
             href="#"
-            <?= $paginaAtual > 1
-              ? 'onclick="carregarPagina(' . ($paginaAtual - 1) . ', ' . htmlspecialchars(json_encode($busca), ENT_QUOTES, 'UTF-8') . '); return false;"'
-              : '' ?>
+            <?php if ($paginaAtual > 1): ?>
+              data-pagina="<?= $paginaAtual - 1 ?>"
+              data-busca="<?= $buscaSegura ?>"
+            <?php endif; ?>
           >
             Anterior
           </a>
@@ -113,7 +116,8 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
             <a
               class="page-link"
               href="#"
-              onclick='carregarPagina(<?= $i ?>, <?= json_encode($busca) ?>); return false;'
+              data-pagina="<?= $i ?>"
+              data-busca="<?= $buscaSegura ?>"
             >
               <?= $i ?>
             </a>
@@ -124,9 +128,10 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
           <a
             class="page-link"
             href="#"
-            <?= $paginaAtual < $totalPaginas
-              ? 'onclick="carregarPagina(' . ($paginaAtual + 1) . ', ' . htmlspecialchars(json_encode($busca), ENT_QUOTES, 'UTF-8') . '); return false;"'
-              : '' ?>
+            <?php if ($paginaAtual < $totalPaginas): ?>
+              data-pagina="<?= $paginaAtual + 1 ?>"
+              data-busca="<?= $buscaSegura ?>"
+            <?php endif; ?>
           >
             Próxima
           </a>
@@ -146,7 +151,7 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
       name="busca"
       class="form-control"
       placeholder="Buscar produtos..."
-      value="<?= htmlspecialchars($busca) ?>"
+      value="<?= htmlspecialchars($busca, ENT_QUOTES, 'UTF-8') ?>"
     >
 
     <button type="submit" class="btn btn-dark">
@@ -180,18 +185,18 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
       <div class="col-6 col-md-4 col-lg-3 animar-quando-aparecer">
         <div class="card h-100">
           <img
-            src="/uploads/products/<?= htmlspecialchars($primeiraImagem) ?>"
+            src="/media/image.php?file=<?= urlencode($primeiraImagem) ?>"
             class="card-img-top produto-card-img"
-            alt="<?= htmlspecialchars($produto['nome']) ?>"
+            alt="<?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?>"
           >
 
           <div class="card-body d-flex flex-column">
             <h5 class="product-title">
-              <?= htmlspecialchars($produto['nome']) ?>
+              <?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?>
             </h5>
 
             <p class="card-text product-description">
-              <?= htmlspecialchars(mb_strimwidth($produto['descricao'] ?? '', 0, 80, '...')) ?>
+              <?= htmlspecialchars(mb_strimwidth($produto['descricao'] ?? '', 0, 80, '...'), ENT_QUOTES, 'UTF-8') ?>
             </p>
 
             <div class="mt-auto">
@@ -237,7 +242,7 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
       <div class="modal-content">
 
         <div class="modal-header">
-          <h5 class="modal-title"><?= htmlspecialchars($produto['nome']) ?></h5>
+          <h5 class="modal-title"><?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?></h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
 
@@ -253,9 +258,9 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
                       <?php foreach ($imagensDoProduto as $index => $imagem): ?>
                         <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
                           <img
-                            src="/uploads/products/<?= htmlspecialchars($imagem['arquivo']) ?>"
+                            src="/media/image.php?file=<?= urlencode($imagem['arquivo']) ?>"
                             class="d-block w-100 produto-modal-img rounded"
-                            alt="<?= htmlspecialchars($produto['nome']) ?>"
+                            alt="<?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?>"
                           >
                         </div>
                       <?php endforeach; ?>
@@ -284,7 +289,7 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
                   </div>
                 <?php else: ?>
                   <img
-                    src="/uploads/products/default.png"
+                    src="/media/image.php?file=default.png"
                     class="img-fluid rounded produto-modal-img"
                     alt="Imagem padrão"
                   >
@@ -293,7 +298,7 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
 
               <div class="col-12 col-md-6">
                 <div class="d-flex justify-content-between align-items-start mb-2">
-                  <h2 class="mb-0"><?= htmlspecialchars($produto['nome']) ?></h2>
+                  <h2 class="mb-0"><?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?></h2>
 
                   <p class="preco fs-4 mb-0 text-end">
                     R$ <?= number_format((float)($produto['preco'] ?? 0), 2, ',', '.') ?>
@@ -301,7 +306,7 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
                 </div>
 
                 <p class="product-description mb-4">
-                  <?= nl2br(htmlspecialchars($produto['descricao'] ?? '')) ?>
+                  <?= nl2br(htmlspecialchars($produto['descricao'] ?? '', ENT_QUOTES, 'UTF-8')) ?>
                 </p>
 
                 <a

@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['excluir_imagem'])) {
         $imagem = $stmtImagem->fetch();
 
         if ($imagem) {
-            $caminhoArquivo = dirname(__DIR__) . '/uploads/products/' . $imagem['arquivo'];
+            $caminhoArquivo = dirname(__DIR__, 2) . '/private/uploads/products/' . $imagem['arquivo'];
 
             if (is_file($caminhoArquivo)) {
                 unlink($caminhoArquivo);
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adicionar_imagem'])) 
 
                 if (in_array($extensao, $extensoesPermitidas, true)) {
                     $nomeArquivo = uniqid('produto_', true) . '.' . $extensao;
-                    $diretorioUpload = dirname(__DIR__) . '/uploads/products/';
+                    $diretorioUpload = dirname(__DIR__ , 2) . '/private/uploads/products/';
                     $caminhoDestino = $diretorioUpload . $nomeArquivo;
 
                     if (!is_dir($diretorioUpload)) {
@@ -242,7 +242,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_produto'])) {
                             <div class="col-6 col-md-4 col-lg-3">
                                 <div class="card h-100 shadow-sm">
                                     <img
-                                        src="../uploads/products/<?= htmlspecialchars($imagem['arquivo']) ?>"
+                                        src="/media/image.php?file=<?= urlencode($imagem['arquivo']) ?>"
                                         class="card-img-top"
                                         alt="Imagem do produto"
                                         style="height: 220px; object-fit: cover;"

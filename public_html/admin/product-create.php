@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $produtoId = $pdo->lastInsertId();
 
-            $uploadDir = dirname(__DIR__) . '/uploads/products/';
+            $uploadDir = dirname(__DIR__ , 2) . '/private/uploads/products/';
 
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0777, true);

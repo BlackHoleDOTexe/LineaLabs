@@ -54,10 +54,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p class="text-muted small mb-0">Área restrita para gerenciamento</p>
       </div>
 
+        <?php if ($erro !== ''): ?>
+          <div class="alert alert-danger">
+            <?= htmlspecialchars($erro, ENT_QUOTES, 'UTF-8') ?>
+          </div>
+        <?php endif; ?>
+
       <form method="POST" action="">
         <div class="mb-3">
           <label class="form-label">E-mail</label>
-          <input type="email" class="form-control" placeholder="admin@linealabs.com" name="email" required>
+          <input type="email" class="form-control" placeholder="admin@linealabs.com" name="email" value="<?= htmlspecialchars($email ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
         </div>
 
         <div class="mb-3">
