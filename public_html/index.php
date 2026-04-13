@@ -10,7 +10,7 @@ require_once dirname(__DIR__) . '/private/config.php';
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-  <link rel="stylesheet" href="css/index_style.css?v=6">
+  <link rel="stylesheet" href="css/index_style.css?v=7">
 </head>
 <body>
 
@@ -95,7 +95,7 @@ require_once dirname(__DIR__) . '/private/config.php';
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
-<script src="js/index.js?v=6"></script>
+<script src="js/index.js?v=7"></script>
 
 </body>
 </html>

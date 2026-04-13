@@ -14,5 +14,5 @@ if ($id > 0) {
     $stmt->execute(['id' => $id]);
 }
 
-header('Location: admin-dashboard.php');
+header('Location: admin-dashboard.php?aba=produtos');
 exit;

@@ -44,5 +44,5 @@ if ($id) {
     }
 }
 
-header('Location: admin-dashboard.php');
+header('Location: admin-dashboard.php?aba=produtos');
 exit;

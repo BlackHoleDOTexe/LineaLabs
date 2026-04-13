@@ -1,172 +1,287 @@
 <?php
 require_once dirname(__DIR__, 2) . '/private/config.php';
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/includes/image-helper.php';
 
 exigirLogin();
 
-$erro = '';
+$erro    = '';
+$sucesso = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nome = trim($_POST['nome'] ?? '');
+    $nome      = trim($_POST['nome']      ?? '');
     $descricao = trim($_POST['descricao'] ?? '');
-    $preco = trim($_POST['preco'] ?? '');
+    $dimensoes = trim($_POST['dimensoes'] ?? '');
     $categoria = trim($_POST['categoria'] ?? '');
-    $ativo = isset($_POST['ativo']) ? 1 : 0;
+    $ativo     = isset($_POST['ativo']) ? 1 : 0;
 
-    // DEBUG TEMPORÁRIO
-    /*
-    echo '<pre>';
-    var_dump($_POST);
-    var_dump($_FILES);
-    echo '</pre>';
-    exit;
-    */
+    // Normaliza preço (aceita vírgula ou ponto)
+    $preco = str_replace(',', '.', trim($_POST['preco'] ?? ''));
 
-    if ($nome === '' || $preco === '') {
-        $erro = 'Nome e preço são obrigatórios.';
-    } elseif (!is_numeric($preco)) {
-        $erro = 'Preço inválido.';
+    // Validações
+    if ($nome === '') {
+        $erro = 'O nome do produto é obrigatório.';
+    } elseif (!is_numeric($preco) || (float) $preco < 0) {
+        $erro = 'Informe um preço válido (ex: 29,90).';
     } elseif (
-        !isset($_FILES['imagens']) ||
-        !isset($_FILES['imagens']['name']) ||
-        count(array_filter($_FILES['imagens']['name'])) === 0
+        empty($_FILES['imagens']['name'][0])
+        || count(array_filter($_FILES['imagens']['name'])) === 0
     ) {
-        $erro = 'Envie pelo menos uma imagem.';
+        $erro = 'Envie pelo menos uma imagem para o produto.';
     } else {
         try {
             $pdo->beginTransaction();
 
-            $sqlProduto = "INSERT INTO produtos (nome, descricao, preco, categoria, ativo)
-                           VALUES (:nome, :descricao, :preco, :categoria, :ativo)";
+            // Insere produto
+            $sqlProduto = "INSERT INTO produtos (nome, descricao, dimensoes, preco, categoria, ativo)
+                           VALUES (:nome, :descricao, :dimensoes, :preco, :categoria, :ativo)";
             $stmtProduto = $pdo->prepare($sqlProduto);
             $stmtProduto->execute([
-                'nome' => $nome,
-                'descricao' => $descricao,
-                'preco' => $preco,
-                'categoria' => $categoria,
-                'ativo' => $ativo
+                ':nome'      => $nome,
+                ':descricao' => $descricao !== '' ? $descricao : null,
+                ':dimensoes' => $dimensoes !== '' ? $dimensoes : null,
+                ':preco'     => (float) $preco,
+                ':categoria' => $categoria !== '' ? $categoria : null,
+                ':ativo'     => $ativo,
             ]);
 
-            $produtoId = $pdo->lastInsertId();
-
-            $uploadDir = dirname(__DIR__ , 2) . '/private/uploads/products/';
+            $produtoId  = (int) $pdo->lastInsertId();
+            $uploadDir  = dirname(__DIR__, 2) . '/private/uploads/products/';
 
             if (!is_dir($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
+                mkdir($uploadDir, 0755, true);
             }
 
-            $arquivos = $_FILES['imagens'];
-            $permitidas = ['jpg', 'jpeg', 'png', 'webp'];
+            $arquivos         = $_FILES['imagens'];
             $enviouAoMenosUma = false;
+            $errosImagem      = [];
 
-            for ($i = 0; $i < count($arquivos['name']); $i++) {
+            for ($i = 0, $qtd = count($arquivos['name']); $i < $qtd; $i++) {
                 if ($arquivos['error'][$i] !== UPLOAD_ERR_OK) {
                     continue;
                 }
 
-                $nomeOriginal = $arquivos['name'][$i];
-                $tmpName = $arquivos['tmp_name'][$i];
+                $tmpFile = $arquivos['tmp_name'][$i];
                 $tamanho = $arquivos['size'][$i];
 
-                $ext = strtolower(pathinfo($nomeOriginal, PATHINFO_EXTENSION));
-
-                if (!in_array($ext, $permitidas, true)) {
+                // Limite de 10 MB por imagem (o WebP terá tamanho menor)
+                if ($tamanho > 10 * 1024 * 1024) {
+                    $errosImagem[] = "Imagem " . ($i + 1) . " excede 10 MB — ignorada.";
                     continue;
                 }
 
-                if ($tamanho > 5 * 1024 * 1024) {
+                $prefixo     = 'produto_' . $produtoId . '_';
+                $nomeArquivo = processarImagemWebP($tmpFile, $uploadDir, $prefixo);
+
+                if ($nomeArquivo === false) {
+                    $errosImagem[] = "Imagem " . ($i + 1) . " inválida ou não pôde ser convertida — ignorada.";
                     continue;
                 }
 
-                $nomeArquivo = uniqid('produto_' . $produtoId . '_', true) . '.' . $ext;
-                $caminhoFinal = $uploadDir . $nomeArquivo;
+                $sqlImagem = "INSERT INTO produto_imagens (produto_id, arquivo, ordem)
+                              VALUES (:produto_id, :arquivo, :ordem)";
+                $stmtImg   = $pdo->prepare($sqlImagem);
+                $stmtImg->execute([
+                    ':produto_id' => $produtoId,
+                    ':arquivo'    => $nomeArquivo,
+                    ':ordem'      => $i,
+                ]);
 
-                if (move_uploaded_file($tmpName, $caminhoFinal)) {
-                    $sqlImagem = "INSERT INTO produto_imagens (produto_id, arquivo, ordem)
-                                  VALUES (:produto_id, :arquivo, :ordem)";
-                    $stmtImagem = $pdo->prepare($sqlImagem);
-                    $stmtImagem->execute([
-                        'produto_id' => $produtoId,
-                        'arquivo' => $nomeArquivo,
-                        'ordem' => $i
-                    ]);
-
-                    $enviouAoMenosUma = true;
-                }
+                $enviouAoMenosUma = true;
             }
 
             if (!$enviouAoMenosUma) {
-                throw new Exception('Nenhuma imagem válida foi enviada.');
+                throw new RuntimeException(
+                    'Nenhuma imagem válida foi processada. ' . implode(' ', $errosImagem)
+                );
             }
 
             $pdo->commit();
 
-            header('Location: admin-dashboard.php');
+            // Redireciona com mensagem de sucesso
+            header('Location: admin-dashboard.php?aba=produtos&msg=produto_criado');
             exit;
-        } catch (Exception $e) {
+
+        } catch (Throwable $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
-
-            $erro = $e->getMessage();
+            $erro = 'Erro ao salvar: ' . $e->getMessage();
         }
     }
 }
-?>
 
+// Busca categorias existentes para o datalist
+$sqlCats   = "SELECT DISTINCT categoria FROM produtos
+              WHERE categoria IS NOT NULL AND categoria <> ''
+              ORDER BY categoria";
+$categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
+?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Novo Produto - Linea Labs</title>
-    <link rel="stylesheet" href="../css/admin_login.css">
+    <title>Novo Produto — Linea Labs</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../css/admin_dashboard.css">
 </head>
-<body>
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Novo produto</h1>
-        <a href="admin-dashboard.php" class="btn btn-outline-dark">Voltar</a>
-    </div>
+<body class="admin-body">
+<div class="admin-wrapper">
 
-    <?php if ($erro !== ''): ?>
-        <div class="alert alert-danger"><?= htmlspecialchars($erro) ?></div>
-    <?php endif; ?>
+    <aside class="admin-sidebar">
+        <h2 class="logo mb-4">Linea Labs</h2>
+        <nav class="nav flex-column gap-1">
+            <a class="nav-link" href="admin-dashboard.php?aba=produtos">
+                <i class="bi bi-box-seam me-2"></i>Produtos
+            </a>
+            <a class="nav-link active" href="#">
+                <i class="bi bi-plus-circle me-2"></i>Novo Produto
+            </a>
+            <a class="nav-link" href="admin-dashboard.php?aba=orcamentos">
+                <i class="bi bi-calculator me-2"></i>Orçamentos
+            </a>
+            <a class="nav-link" href="admin-dashboard.php?aba=configuracoes">
+                <i class="bi bi-gear me-2"></i>Configurações
+            </a>
+        </nav>
+        <div class="mt-auto pt-4">
+            <a class="nav-link text-danger" href="logout.php">
+                <i class="bi bi-box-arrow-right me-2"></i>Sair
+            </a>
+        </div>
+    </aside>
 
-<form method="POST" enctype="multipart/form-data" class="card p-4">
-    <div class="mb-3">
-        <label class="form-label">Nome</label>
-        <input type="text" name="nome" class="form-control" required>
-    </div>
+    <main class="admin-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 mb-1">Novo Produto</h1>
+                <p class="text-muted mb-0">Preencha os dados e envie as imagens</p>
+            </div>
+            <a href="admin-dashboard.php?aba=produtos" class="btn btn-outline-dark btn-sm">
+                <i class="bi bi-arrow-left me-1"></i>Voltar
+            </a>
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Descrição</label>
-        <textarea name="descricao" class="form-control" rows="4"></textarea>
-    </div>
+        <?php if ($erro !== ''): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i><?= htmlspecialchars($erro) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
 
-    <div class="mb-3">
-        <label class="form-label">Preço</label>
-        <input type="number" name="preco" class="form-control" step="0.01" min="0" required>
-    </div>
+        <div class="admin-card">
+            <form method="POST" enctype="multipart/form-data">
 
-    <div class="mb-3">
-        <label class="form-label">Categoria</label>
-        <input type="text" name="categoria" class="form-control">
-    </div>
+                <div class="row g-3">
+                    <!-- Nome -->
+                    <div class="col-12">
+                        <label for="nome" class="form-label">Nome <span class="text-danger">*</span></label>
+                        <input type="text" id="nome" name="nome" class="form-control"
+                               value="<?= htmlspecialchars($_POST['nome'] ?? '') ?>"
+                               placeholder="Ex: Cruz Decorativa em MDF" required>
+                    </div>
 
-    <div class="mb-3">
-        <label class="form-label">Imagens</label>
-        <input type="file" name="imagens[]" class="form-control" accept=".jpg,.jpeg,.png,.webp" multiple required>
-    </div>
+                    <!-- Descrição -->
+                    <div class="col-12">
+                        <label for="descricao" class="form-label">Descrição</label>
+                        <textarea id="descricao" name="descricao" class="form-control" rows="5"
+                                  placeholder="Descreva o produto em detalhes..."><?= htmlspecialchars($_POST['descricao'] ?? '') ?></textarea>
+                    </div>
 
-    <div class="form-check mb-3">
-        <input type="checkbox" name="ativo" class="form-check-input" id="ativo" checked>
-        <label class="form-check-label" for="ativo">Produto ativo</label>
-    </div>
+                    <!-- Dimensões -->
+                    <div class="col-md-6">
+                        <label for="dimensoes" class="form-label">Dimensões</label>
+                        <input type="text" id="dimensoes" name="dimensoes" class="form-control"
+                               value="<?= htmlspecialchars($_POST['dimensoes'] ?? '') ?>"
+                               placeholder="Ex: 30cm × 21cm × 9mm">
+                        <div class="form-text">Formato livre. Ex: 30cm × 21cm × 9mm</div>
+                    </div>
 
-    <button type="submit" class="btn btn-dark">Salvar produto</button>
-</form>
+                    <!-- Preço -->
+                    <div class="col-md-3">
+                        <label for="preco" class="form-label">Preço (R$) <span class="text-danger">*</span></label>
+                        <input type="text" id="preco" name="preco" class="form-control"
+                               value="<?= htmlspecialchars($_POST['preco'] ?? '') ?>"
+                               placeholder="Ex: 29,90"
+                               inputmode="decimal" required>
+                    </div>
+
+                    <!-- Categoria -->
+                    <div class="col-md-3">
+                        <label for="categoria" class="form-label">Categoria</label>
+                        <input type="text" id="categoria" name="categoria" class="form-control"
+                               value="<?= htmlspecialchars($_POST['categoria'] ?? '') ?>"
+                               placeholder="Ex: Decorativo"
+                               list="lista-categorias">
+                        <datalist id="lista-categorias">
+                            <?php foreach ($categorias as $cat): ?>
+                                <option value="<?= htmlspecialchars($cat) ?>">
+                            <?php endforeach; ?>
+                        </datalist>
+                    </div>
+
+                    <!-- Imagens -->
+                    <div class="col-12">
+                        <label for="imagens" class="form-label">
+                            Imagens <span class="text-danger">*</span>
+                            <span class="text-muted small ms-1">
+                                (JPG, PNG, WebP ou GIF — até 10 MB cada, convertidas para .webp)
+                            </span>
+                        </label>
+                        <input type="file" id="imagens" name="imagens[]" class="form-control"
+                               accept=".jpg,.jpeg,.png,.webp,.gif" multiple required>
+
+                        <!-- Preview de imagens antes do envio -->
+                        <div id="preview-imagens" class="d-flex flex-wrap gap-2 mt-2"></div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input type="checkbox" id="ativo" name="ativo" class="form-check-input"
+                                   <?= isset($_POST['ativo']) || !isset($_POST['nome']) ? 'checked' : '' ?>>
+                            <label for="ativo" class="form-check-label">Produto ativo (visível no catálogo)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-dark">
+                        <i class="bi bi-save me-1"></i>Salvar Produto
+                    </button>
+                    <a href="admin-dashboard.php?aba=produtos" class="btn btn-outline-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </main>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// Preview de imagens no cliente
+document.getElementById('imagens').addEventListener('change', function () {
+    const container = document.getElementById('preview-imagens');
+    container.innerHTML = '';
+
+    Array.from(this.files).forEach(file => {
+        if (!file.type.startsWith('image/')) return;
+
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'rounded border';
+            img.style.cssText = 'width:80px;height:80px;object-fit:cover;';
+            img.title = file.name;
+            container.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+    });
+});
+</script>
 </body>
 </html>
