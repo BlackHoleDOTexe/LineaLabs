@@ -22,7 +22,7 @@ function processarImagemWebP(
     string $diretorio,
     string $prefixo,
     int $maxLargura = 1200,
-    int $qualidade  = 85
+    int $qualidade  = 90
 ): string|false {
 
     $info = @getimagesize($tmpFile);
@@ -45,6 +45,24 @@ function processarImagemWebP(
         'image/gif'  => @imagecreatefromgif($tmpFile),
         default      => false,
     };
+
+    if($mime === 'image/jpeg'){
+        $exif = @exif_read_data($tmpFile);
+        if($exif && isset($exif['Orientation'])) {
+            $orientation = $exif['Orientation'];
+            switch ($orientation) {
+                case 3:
+                    $src = imagerotate($src, 180, 0);
+                    break;
+                case 6:
+                    $src = imagerotate($src, -90, 0);
+                    break;
+                case 8:
+                    $src = imagerotate($src, 90, 0);
+                    break;
+            }
+        }   
+    }
 
     if (!$src) {
         return false;

@@ -10,7 +10,8 @@ require_once dirname(__DIR__) . '/private/config.php';
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-  <link rel="stylesheet" href="css/index_style.css?v=7">
+  <link rel="stylesheet" href="css/index_style.css?v=<?= APP_version ?>">
+  <link rel="icon" type="image/x-icon" href="img/favicon.ico">
 </head>
 <body>
 
@@ -28,7 +29,7 @@ require_once dirname(__DIR__) . '/private/config.php';
 
 <section id="catalogo" class="catalogo container-fluid bg-2 px-3 px-md-0">
   <div class="container py-4">
-    <h2 class="mb-4 justify-content-center text-center logo animar-quando-aparecer">NOSSOS PRODUTOS PERSONALIZADOS</h2>
+    <h2 class="mb-4 justify-content-center text-center logo">NOSSOS PRODUTOS PERSONALIZADOS</h2>
 
     <div id="catalogo-container">
       <?php include __DIR__ . '/catalogo.php'; ?>
@@ -38,17 +39,17 @@ require_once dirname(__DIR__) . '/private/config.php';
 
 <section id="orçamento-personalizado" class="container-fluid bg-3 py-4">
   <div class="container py-4 justify-content-center text-center">
-    <h2 class="mb-4 logo animar-quando-aparecer">Pedido Personalizado</h2>
-    <h4 class="mb-4 animar-quando-aparecer">
+    <h2 class="mb-4 logo ">Pedido Personalizado</h2>
+    <h4 class="mb-4 ">
       Não encontrou exatamente o que desejava em nosso catálogo? Entre em contato para solicitar um orçamento personalizado. Desenvolvemos peças e projetos sob medida, com atenção aos detalhes, qualidade no acabamento e foco na sua necessidade.
     </h4>
-    <a href="https://wa.me/5544997554052" class="btn btn-dark btn-lg bi bi-whatsapp animar-quando-aparecer" target="_blank">
+    <a href="https://wa.me/5544997554052" class="btn btn-dark btn-lg bi bi-whatsapp " target="_blank">
       Solicitar Orçamento
     </a>
   </div>
 </section>
 
-<footer class="footer bg-dark text-light animar-quando-aparecer">
+<footer class="footer bg-dark text-light">
   <div class="container py-4">
     <div class="row g-4">
 
