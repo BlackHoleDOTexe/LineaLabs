@@ -1,16 +1,21 @@
-window.carregarPagina = async function (pagina = 1, busca = '') {
+window.carregarPagina = async function (
+  pagina   = 1,
+  busca    = '',
+  categoria = '',
+  precoMin = '',
+  precoMax = ''
+) {
   try {
     const params = new URLSearchParams();
     params.set('pagina', pagina);
 
-    if (busca.trim() !== '') {
-      params.set('busca', busca);
-    }
+    if (busca.trim()     !== '') params.set('busca',     busca.trim());
+    if (categoria.trim() !== '') params.set('categoria', categoria.trim());
+    if (precoMin.trim()  !== '') params.set('preco_min', precoMin.trim());
+    if (precoMax.trim()  !== '') params.set('preco_max', precoMax.trim());
 
     const resposta = await fetch(`catalogo.php?${params.toString()}`, {
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest'
-      }
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
 
     if (!resposta.ok) {
@@ -33,18 +38,27 @@ window.carregarPagina = async function (pagina = 1, busca = '') {
 function buscarProdutos(event) {
   event.preventDefault();
 
-  const campoBusca = document.getElementById('campo-busca');
-  const busca = campoBusca ? campoBusca.value.trim() : '';
+  const busca     = document.getElementById('campo-busca')?.value     ?? '';
+  const categoria = document.getElementById('campo-categoria')?.value  ?? '';
+  const precoMin  = document.getElementById('campo-preco-min')?.value  ?? '';
+  const precoMax  = document.getElementById('campo-preco-max')?.value  ?? '';
 
-  window.carregarPagina(1, busca);
+  window.carregarPagina(1, busca, categoria, precoMin, precoMax);
 }
 
 function conectarFormularioBusca() {
   const formBusca = document.getElementById('form-busca-catalogo');
-
   if (formBusca && !formBusca.dataset.listenerAttached) {
     formBusca.addEventListener('submit', buscarProdutos);
     formBusca.dataset.listenerAttached = 'true';
+  }
+
+  const btnLimpar = document.getElementById('btn-limpar-filtros');
+  if (btnLimpar && !btnLimpar.dataset.listenerAttached) {
+    btnLimpar.addEventListener('click', () => {
+      window.carregarPagina(1, '', '', '', '');
+    });
+    btnLimpar.dataset.listenerAttached = 'true';
   }
 }
 
@@ -58,9 +72,7 @@ function iniciarAnimacoesCatalogo() {
         observerRef.unobserve(entry.target);
       }
     });
-  }, {
-    threshold: 0.2
-  });
+  }, { threshold: 0.2 });
 
   elementos.forEach(el => {
     if (!el.classList.contains('text-focus-in')) {
@@ -78,18 +90,25 @@ document.addEventListener('click', (e) => {
   const item = link.closest('.page-item');
   if (item && item.classList.contains('disabled')) return;
 
-  const pagina = parseInt(link.dataset.pagina, 10) || 1;
-  const busca = link.dataset.busca || '';
+  const pagina    = parseInt(link.dataset.pagina, 10) || 1;
+  const busca     = link.dataset.busca     ?? '';
+  const categoria = link.dataset.categoria ?? '';
+  const precoMin  = link.dataset.precoMin  ?? '';
+  const precoMax  = link.dataset.precoMax  ?? '';
 
-  window.carregarPagina(pagina, busca);
+  window.carregarPagina(pagina, busca, categoria, precoMin, precoMax);
 });
 
 window.addEventListener('popstate', () => {
   const params = new URLSearchParams(window.location.search);
-  const pagina = parseInt(params.get('pagina')) || 1;
-  const busca = params.get('busca') || '';
 
-  window.carregarPagina(pagina, busca);
+  const pagina    = parseInt(params.get('pagina'))    || 1;
+  const busca     = params.get('busca')     ?? '';
+  const categoria = params.get('categoria') ?? '';
+  const precoMin  = params.get('preco_min') ?? '';
+  const precoMax  = params.get('preco_max') ?? '';
+
+  window.carregarPagina(pagina, busca, categoria, precoMin, precoMax);
 });
 
 document.addEventListener('DOMContentLoaded', () => {

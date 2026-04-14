@@ -6,12 +6,18 @@ if (!$paginaAtual || $paginaAtual < 1) {
     $paginaAtual = 1;
 }
 
-$busca = trim($_GET['busca'] ?? '');
+$busca     = mb_substr(trim($_GET['busca'] ?? ''), 0, 150);
+$categoria = trim($_GET['categoria'] ?? '');
+$precoMin  = trim($_GET['preco_min'] ?? '');
+$precoMax  = trim($_GET['preco_max'] ?? '');
+
+$precoMinVal = ($precoMin !== '' && is_numeric($precoMin) && (float)$precoMin >= 0) ? (float)$precoMin : null;
+$precoMaxVal = ($precoMax !== '' && is_numeric($precoMax) && (float)$precoMax >= 0) ? (float)$precoMax : null;
 
 $produtosPorPagina = 8;
 $offset = ($paginaAtual - 1) * $produtosPorPagina;
 
-$where = "WHERE ativo = 1";
+$where  = "WHERE ativo = 1";
 $params = [];
 
 if ($busca !== '') {
@@ -20,7 +26,6 @@ if ($busca !== '') {
 
     foreach ($palavras as $index => $palavra) {
         $palavra = trim($palavra);
-
         if ($palavra === '') {
             continue;
         }
@@ -33,8 +38,9 @@ if ($busca !== '') {
             OR COALESCE(descricao, '') LIKE {$paramDesc}
         )";
 
-        $params[$paramNome] = '%' . $palavra . '%';
-        $params[$paramDesc] = '%' . $palavra . '%';
+        $palavraEscapada    = addcslashes($palavra, '%_\\');
+        $params[$paramNome] = '%' . $palavraEscapada . '%';
+        $params[$paramDesc] = '%' . $palavraEscapada . '%';
     }
 
     if (!empty($condicoesBusca)) {
@@ -42,8 +48,30 @@ if ($busca !== '') {
     }
 }
 
+if ($categoria !== '') {
+    $where .= " AND categoria = :categoria";
+    $params[':categoria'] = $categoria;
+}
+
+if ($precoMinVal !== null) {
+    $where .= " AND preco >= :preco_min";
+    $params[':preco_min'] = $precoMinVal;
+}
+
+if ($precoMaxVal !== null) {
+    $where .= " AND preco <= :preco_max";
+    $params[':preco_max'] = $precoMaxVal;
+}
+
+// Categorias ativas para o dropdown
+$sqlCategorias = "SELECT DISTINCT categoria
+                  FROM produtos
+                  WHERE ativo = 1 AND categoria IS NOT NULL AND categoria <> ''
+                  ORDER BY categoria";
+$categorias = $pdo->query($sqlCategorias)->fetchAll(PDO::FETCH_COLUMN);
+
 $sqlTotalProdutos = "SELECT COUNT(*) FROM produtos {$where}";
-$stmtTotal = $pdo->prepare($sqlTotalProdutos);
+$stmtTotal        = $pdo->prepare($sqlTotalProdutos);
 
 foreach ($params as $chave => $valor) {
     $stmtTotal->bindValue($chave, $valor, PDO::PARAM_STR);
@@ -56,7 +84,7 @@ $totalPaginas = (int) ceil($totalProdutos / $produtosPorPagina);
 
 if ($totalPaginas > 0 && $paginaAtual > $totalPaginas) {
     $paginaAtual = $totalPaginas;
-    $offset = ($paginaAtual - 1) * $produtosPorPagina;
+    $offset      = ($paginaAtual - 1) * $produtosPorPagina;
 }
 
 $sqlProdutos = "SELECT *
@@ -71,8 +99,8 @@ foreach ($params as $chave => $valor) {
     $stmtProdutos->bindValue($chave, $valor, PDO::PARAM_STR);
 }
 
-$stmtProdutos->bindValue(':limit', $produtosPorPagina, PDO::PARAM_INT);
-$stmtProdutos->bindValue(':offset', $offset, PDO::PARAM_INT);
+$stmtProdutos->bindValue(':limit',  $produtosPorPagina, PDO::PARAM_INT);
+$stmtProdutos->bindValue(':offset', $offset,            PDO::PARAM_INT);
 $stmtProdutos->execute();
 $produtos = $stmtProdutos->fetchAll();
 
@@ -83,17 +111,27 @@ $imagens = $pdo->query($sqlImagens)->fetchAll();
 
 $imagensPorProduto = [];
 foreach ($imagens as $imagem) {
-    $produtoId = $imagem['produto_id'];
-    $imagensPorProduto[$produtoId][] = $imagem;
+    $imagensPorProduto[$imagem['produto_id']][] = $imagem;
 }
 
-function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca): void
-{
+$hasFilters = ($busca !== '' || $categoria !== '' || $precoMin !== '' || $precoMax !== '');
+
+function renderizarPaginacao(
+    int $paginaAtual,
+    int $totalPaginas,
+    string $busca,
+    string $categoria,
+    string $precoMin,
+    string $precoMax
+): void {
     if ($totalPaginas <= 1) {
         return;
     }
 
-    $buscaSegura = htmlspecialchars($busca, ENT_QUOTES, 'UTF-8');
+    $buscaS     = htmlspecialchars($busca,     ENT_QUOTES, 'UTF-8');
+    $categoriaS = htmlspecialchars($categoria, ENT_QUOTES, 'UTF-8');
+    $precoMinS  = htmlspecialchars($precoMin,  ENT_QUOTES, 'UTF-8');
+    $precoMaxS  = htmlspecialchars($precoMax,  ENT_QUOTES, 'UTF-8');
     ?>
     <nav aria-label="Paginação do catálogo">
       <ul class="pagination justify-content-center mb-0">
@@ -104,7 +142,10 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
             href="#"
             <?php if ($paginaAtual > 1): ?>
               data-pagina="<?= $paginaAtual - 1 ?>"
-              data-busca="<?= $buscaSegura ?>"
+              data-busca="<?= $buscaS ?>"
+              data-categoria="<?= $categoriaS ?>"
+              data-preco-min="<?= $precoMinS ?>"
+              data-preco-max="<?= $precoMaxS ?>"
             <?php endif; ?>
           >
             Anterior
@@ -117,7 +158,10 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
               class="page-link"
               href="#"
               data-pagina="<?= $i ?>"
-              data-busca="<?= $buscaSegura ?>"
+              data-busca="<?= $buscaS ?>"
+              data-categoria="<?= $categoriaS ?>"
+              data-preco-min="<?= $precoMinS ?>"
+              data-preco-max="<?= $precoMaxS ?>"
             >
               <?= $i ?>
             </a>
@@ -130,7 +174,10 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
             href="#"
             <?php if ($paginaAtual < $totalPaginas): ?>
               data-pagina="<?= $paginaAtual + 1 ?>"
-              data-busca="<?= $buscaSegura ?>"
+              data-busca="<?= $buscaS ?>"
+              data-categoria="<?= $categoriaS ?>"
+              data-preco-min="<?= $precoMinS ?>"
+              data-preco-max="<?= $precoMaxS ?>"
             <?php endif; ?>
           >
             Próxima
@@ -144,34 +191,88 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
 ?>
 
 <form class="mb-4" id="form-busca-catalogo">
-  <div class="input-group">
-    <input
-      type="text"
-      id="campo-busca"
-      name="busca"
-      class="form-control"
-      placeholder="Buscar produtos..."
-      value="<?= htmlspecialchars($busca, ENT_QUOTES, 'UTF-8') ?>"
-    >
+  <div class="row g-2">
 
-    <button type="submit" class="btn btn-gold">
-      Buscar
-    </button>
+    <!-- Busca textual (linha inteira) -->
+    <div class="col-12">
+      <div class="input-group">
+        <input
+          type="text"
+          id="campo-busca"
+          name="busca"
+          class="form-control"
+          placeholder="Buscar produtos..."
+          value="<?= htmlspecialchars($busca, ENT_QUOTES, 'UTF-8') ?>"
+        >
+        <button type="submit" class="btn btn-gold">
+          <i class="bi bi-search me-1"></i>Buscar
+        </button>
+      </div>
+    </div>
 
-    <?php if ($busca !== ''): ?>
-      <button
-        type="button"
-        class="btn btn-outline-secondary"
-        onclick="carregarPagina(1, ''); document.getElementById('campo-busca').value = '';"
-      >
-        Voltar
-      </button>
+    <!-- Categoria -->
+    <div class="col-12 col-md-4">
+      <select id="campo-categoria" name="categoria" class="form-select">
+        <option value="">Todas as categorias</option>
+        <?php foreach ($categorias as $cat): ?>
+          <option
+            value="<?= htmlspecialchars($cat, ENT_QUOTES, 'UTF-8') ?>"
+            <?= $categoria === $cat ? 'selected' : '' ?>
+          >
+            <?= htmlspecialchars($cat, ENT_QUOTES, 'UTF-8') ?>
+          </option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+
+    <!-- Preço Mínimo -->
+    <div class="col-6 col-md-4">
+      <div class="input-group">
+        <span class="input-group-text">R$</span>
+        <input
+          type="number"
+          id="campo-preco-min"
+          name="preco_min"
+          class="form-control"
+          placeholder="Preço mín."
+          min="0"
+          step="0.01"
+          value="<?= htmlspecialchars($precoMin, ENT_QUOTES, 'UTF-8') ?>"
+        >
+      </div>
+    </div>
+
+    <!-- Preço Máximo -->
+    <div class="col-6 col-md-4">
+      <div class="input-group">
+        <span class="input-group-text">R$</span>
+        <input
+          type="number"
+          id="campo-preco-max"
+          name="preco_max"
+          class="form-control"
+          placeholder="Preço máx."
+          min="0"
+          step="0.01"
+          value="<?= htmlspecialchars($precoMax, ENT_QUOTES, 'UTF-8') ?>"
+        >
+      </div>
+    </div>
+
+    <!-- Limpar filtros (condicional) -->
+    <?php if ($hasFilters): ?>
+      <div class="col-12">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="btn-limpar-filtros">
+          <i class="bi bi-x-circle me-1"></i>Limpar filtros
+        </button>
+      </div>
     <?php endif; ?>
+
   </div>
 </form>
 
 <div class="mb-4">
-  <?php renderizarPaginacao($paginaAtual, $totalPaginas, $busca); ?>
+  <?php renderizarPaginacao($paginaAtual, $totalPaginas, $busca, $categoria, $precoMin, $precoMax); ?>
 </div>
 
 <div class="row g-3">
@@ -179,7 +280,7 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
     <?php foreach ($produtos as $produto): ?>
       <?php
         $imagensDoProduto = $imagensPorProduto[$produto['id']] ?? [];
-        $primeiraImagem = $imagensDoProduto[0]['arquivo'] ?? 'default.png';
+        $primeiraImagem   = $imagensDoProduto[0]['arquivo'] ?? 'default.png';
       ?>
 
       <div class="col-6 col-md-4 col-lg-3">
@@ -220,20 +321,20 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
   <?php else: ?>
     <div class="col-12">
       <div class="alert alert-secondary mb-0">
-        Nenhum produto encontrado para essa busca.
+        Nenhum produto encontrado<?= $hasFilters ? ' para os filtros selecionados' : '' ?>.
       </div>
     </div>
   <?php endif; ?>
 </div>
 
 <div class="mt-4">
-  <?php renderizarPaginacao($paginaAtual, $totalPaginas, $busca); ?>
+  <?php renderizarPaginacao($paginaAtual, $totalPaginas, $busca, $categoria, $precoMin, $precoMax); ?>
 </div>
 
 <?php foreach ($produtos as $produto): ?>
   <?php
     $imagensDoProduto = $imagensPorProduto[$produto['id']] ?? [];
-    $mensagem = "Olá, gostaria de solicitar um orçamento do produto " . $produto['nome'];
+    $mensagem  = "Olá, gostaria de solicitar um orçamento do produto " . $produto['nome'];
     $linkWhats = "https://wa.me/5544997554052?text=" . urlencode($mensagem);
   ?>
 
@@ -309,10 +410,18 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
                   <?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?>
                 </h2>
 
-                <div class="mb-3">
+                <div class="d-flex align-items-center gap-3 flex-wrap mb-3">
                   <span class="modal-preco">
                     R$ <?= number_format((float)($produto['preco'] ?? 0), 2, ',', '.') ?>
                   </span>
+                  <a
+                    href="<?= $linkWhats ?>"
+                    target="_blank"
+                    class="btn btn-success d-flex align-items-center gap-2"
+                  >
+                    <i class="bi bi-whatsapp"></i>
+                    Pedir pelo WhatsApp
+                  </a>
                 </div>
 
                 <hr class="mt-0 mb-4">
@@ -321,20 +430,6 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
                   <p class="small fw-semibold text-uppercase text-muted section-eyebrow mb-2">Descrição</p>
                   <p class="modal-description text-secondary body-relaxed">
                     <?= nl2br(htmlspecialchars($produto['descricao'] ?? '', ENT_QUOTES, 'UTF-8')) ?>
-                  </p>
-                </div>
-
-                <div class="mt-3 pt-3 border-top">
-                  <a
-                    href="<?= $linkWhats ?>"
-                    target="_blank"
-                    class="btn btn-gold btn-lg w-100 d-flex align-items-center justify-content-center gap-2 py-3"
-                  >
-                    <i class="bi bi-whatsapp fs-5"></i>
-                    Pedir pelo WhatsApp
-                  </a>
-                  <p class="text-center small text-muted mt-2 mb-0">
-                    <i class="bi bi-shield-check me-1 text-success"></i>Resposta rápida garantida
                   </p>
                 </div>
 
