@@ -4,7 +4,14 @@ require_once __DIR__ . '/auth.php';
 
 exigirLogin();
 
-$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: admin-dashboard.php?aba=produtos');
+    exit;
+}
+
+verificarCsrf();
+
+$id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
 
 if ($id) {
     try {
@@ -40,7 +47,9 @@ if ($id) {
             $pdo->rollBack();
         }
 
-        exit('Erro ao excluir produto: ' . $e->getMessage());
+        error_log('[product-delete] ' . $e->getMessage());
+        header('Location: admin-dashboard.php?aba=produtos&erro=delete_falhou');
+        exit;
     }
 }
 

@@ -154,7 +154,7 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
       value="<?= htmlspecialchars($busca, ENT_QUOTES, 'UTF-8') ?>"
     >
 
-    <button type="submit" class="btn btn-dark">
+    <button type="submit" class="btn btn-gold">
       Buscar
     </button>
 
@@ -206,7 +206,7 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
 
               <button
                 type="button"
-                class="btn btn-dark w-100"
+                class="btn btn-gold w-100"
                 data-bs-toggle="modal"
                 data-bs-target="#modalProduto<?= $produto['id'] ?>"
               >
@@ -237,89 +237,110 @@ function renderizarPaginacao(int $paginaAtual, int $totalPaginas, string $busca)
     $linkWhats = "https://wa.me/5544997554052?text=" . urlencode($mensagem);
   ?>
 
-  <div class="modal fade" id="modalProduto<?= $produto['id'] ?>" tabindex="-1" aria-hidden="true">
+  <div class="modal fade modal-produto" id="modalProduto<?= $produto['id'] ?>" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-fullscreen">
       <div class="modal-content">
 
-        <div class="modal-header">
-          <h5 class="modal-title"><?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?></h5>
+        <div class="modal-header px-4 py-2">
+          <span class="small text-muted">
+            <i class="bi bi-box-seam me-1"></i>Catálogo Linea Labs
+          </span>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
         </div>
 
-        <div class="modal-body">
-          <div class="container py-4">
-            <div class="row g-4 align-items-start">
+        <div class="modal-body p-0">
+          <div class="row g-0">
 
-              <div class="col-12 col-md-6">
-                <?php if (!empty($imagensDoProduto)): ?>
-                  <div id="carouselProduto<?= $produto['id'] ?>" class="carousel slide">
-                    <div class="carousel-inner rounded">
+            <!-- Imagem / Carousel -->
+            <div class="col-12 col-md-7 modal-img-col">
+              <?php if (!empty($imagensDoProduto)): ?>
+                <div id="carouselProduto<?= $produto['id'] ?>" class="carousel slide h-100">
 
+                  <?php if (count($imagensDoProduto) > 1): ?>
+                    <div class="carousel-indicators">
                       <?php foreach ($imagensDoProduto as $index => $imagem): ?>
-                        <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
-                          <img
-                            src="/media/image.php?file=<?= urlencode($imagem['arquivo']) ?>"
-                            class="d-block w-100 produto-modal-img rounded"
-                            alt="<?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?>"
-                          >
-                        </div>
+                        <button
+                          type="button"
+                          data-bs-target="#carouselProduto<?= $produto['id'] ?>"
+                          data-bs-slide-to="<?= $index ?>"
+                          <?= $index === 0 ? 'class="active" aria-current="true"' : '' ?>
+                          aria-label="Slide <?= $index + 1 ?>"
+                        ></button>
                       <?php endforeach; ?>
-
                     </div>
+                  <?php endif; ?>
 
-                    <?php if (count($imagensDoProduto) > 1): ?>
-                      <button
-                        class="carousel-control-prev"
-                        type="button"
-                        data-bs-target="#carouselProduto<?= $produto['id'] ?>"
-                        data-bs-slide="prev"
-                      >
-                        <span class="carousel-control-prev-icon"></span>
-                      </button>
-
-                      <button
-                        class="carousel-control-next"
-                        type="button"
-                        data-bs-target="#carouselProduto<?= $produto['id'] ?>"
-                        data-bs-slide="next"
-                      >
-                        <span class="carousel-control-next-icon"></span>
-                      </button>
-                    <?php endif; ?>
+                  <div class="carousel-inner h-100">
+                    <?php foreach ($imagensDoProduto as $index => $imagem): ?>
+                      <div class="carousel-item h-100 <?= $index === 0 ? 'active' : '' ?>">
+                        <img
+                          src="/media/image.php?file=<?= urlencode($imagem['arquivo']) ?>"
+                          class="d-block w-100 produto-modal-img"
+                          alt="<?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?>"
+                        >
+                      </div>
+                    <?php endforeach; ?>
                   </div>
-                <?php else: ?>
-                  <img
-                    src="/media/image.php?file=default.png"
-                    class="img-fluid rounded produto-modal-img"
-                    alt="Imagem padrão"
-                  >
-                <?php endif; ?>
-              </div>
 
-              <div class="col-12 col-md-6">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                  <h2 class="mb-0"><?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?></h2>
+                  <?php if (count($imagensDoProduto) > 1): ?>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselProduto<?= $produto['id'] ?>" data-bs-slide="prev">
+                      <span class="carousel-control-prev-icon"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselProduto<?= $produto['id'] ?>" data-bs-slide="next">
+                      <span class="carousel-control-next-icon"></span>
+                    </button>
+                  <?php endif; ?>
 
-                  <p class="preco fs-4 mb-0 text-end">
+                </div>
+              <?php else: ?>
+                <img
+                  src="/media/image.php?file=default.png"
+                  class="d-block w-100 produto-modal-img"
+                  alt="Imagem padrão"
+                >
+              <?php endif; ?>
+            </div>
+
+            <!-- Informações -->
+            <div class="col-12 col-md-5 modal-info-col d-flex flex-column">
+              <div class="p-4 p-md-5 d-flex flex-column h-100">
+
+                <h2 class="modal-product-title mb-3">
+                  <?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?>
+                </h2>
+
+                <div class="mb-3">
+                  <span class="modal-preco">
                     R$ <?= number_format((float)($produto['preco'] ?? 0), 2, ',', '.') ?>
+                  </span>
+                </div>
+
+                <hr class="mt-0 mb-4">
+
+                <div class="flex-grow-1">
+                  <p class="small fw-semibold text-uppercase text-muted section-eyebrow mb-2">Descrição</p>
+                  <p class="modal-description text-secondary body-relaxed">
+                    <?= nl2br(htmlspecialchars($produto['descricao'] ?? '', ENT_QUOTES, 'UTF-8')) ?>
                   </p>
                 </div>
 
-                <p class="product-description mb-4">
-                  <?= nl2br(htmlspecialchars($produto['descricao'] ?? '', ENT_QUOTES, 'UTF-8')) ?>
-                </p>
+                <div class="mt-3 pt-3 border-top">
+                  <a
+                    href="<?= $linkWhats ?>"
+                    target="_blank"
+                    class="btn btn-gold btn-lg w-100 d-flex align-items-center justify-content-center gap-2 py-3"
+                  >
+                    <i class="bi bi-whatsapp fs-5"></i>
+                    Pedir pelo WhatsApp
+                  </a>
+                  <p class="text-center small text-muted mt-2 mb-0">
+                    <i class="bi bi-shield-check me-1 text-success"></i>Resposta rápida garantida
+                  </p>
+                </div>
 
-                <a
-                  href="<?= $linkWhats ?>"
-                  target="_blank"
-                  class="btn btn-success w-100 w-md-auto d-flex align-items-center justify-content-center gap-2"
-                >
-                  <i class="bi bi-whatsapp"></i>
-                  Pedir pelo WhatsApp
-                </a>
               </div>
-
             </div>
+
           </div>
         </div>
 

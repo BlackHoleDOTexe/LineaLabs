@@ -7,6 +7,10 @@ redirecionarSeLogado();
 
 $erro = '';
 
+if (isset($_GET['timeout']) && $_GET['timeout'] === '1') {
+    $erro = 'Sua sessão expirou por inatividade. Faça login novamente.';
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
     $senha = $_POST['senha'] ?? '';
@@ -19,13 +23,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute(['email' => $email]);
 
         $admin = $stmt->fetch();
+        $hashVerificar = $admin['senha'] ?? '$2y$12$invaliddummyhashfortimingxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+        $credenciaisValidas = password_verify($senha, $hashVerificar);
 
-        if ($admin && password_verify($senha, $admin['senha'])) {
+        if ($admin && $credenciaisValidas) {
             session_regenerate_id(true);
 
-            $_SESSION['admin_id'] = $admin['id'];
-            $_SESSION['admin_nome'] = $admin['nome'];
-            $_SESSION['admin_email'] = $admin['email'];
+            $_SESSION['admin_id']      = $admin['id'];
+            $_SESSION['admin_nome']    = $admin['nome'];
+            $_SESSION['admin_email']   = $admin['email'];
+            $_SESSION['ultimo_acesso'] = time();
 
             header('Location: admin-dashboard.php');
             exit;

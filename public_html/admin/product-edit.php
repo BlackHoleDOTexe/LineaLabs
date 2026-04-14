@@ -29,6 +29,8 @@ $sucesso = '';
 // Ação: Excluir imagem individual
 // ----------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['excluir_imagem'])) {
+    verificarCsrf();
+
     $imagemId = filter_input(INPUT_POST, 'imagem_id', FILTER_VALIDATE_INT);
 
     if ($imagemId) {
@@ -57,6 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['excluir_imagem'])) {
 // Ação: Adicionar nova imagem (com conversão WebP)
 // ----------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adicionar_imagem'])) {
+    verificarCsrf();
+
     if (empty($_FILES['nova_imagem']['name'])) {
         $erro = 'Selecione uma imagem para enviar.';
     } elseif ($_FILES['nova_imagem']['error'] !== UPLOAD_ERR_OK) {
@@ -96,6 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adicionar_imagem'])) 
 // Ação: Salvar dados do produto
 // ----------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_produto'])) {
+    verificarCsrf();
+
     $nome      = trim($_POST['nome']      ?? '');
     $descricao = trim($_POST['descricao'] ?? '');
     $dimensoes = trim($_POST['dimensoes'] ?? '');
@@ -226,6 +232,7 @@ if (isset($_GET['ok'])) {
             <h2 class="h5 mb-4">Dados do Produto</h2>
 
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                 <div class="row g-3">
 
                     <div class="col-12">
@@ -321,6 +328,7 @@ if (isset($_GET['ok'])) {
                                     </small>
                                     <form method="POST"
                                           onsubmit="return confirm('Excluir esta imagem permanentemente?')">
+                                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                                         <input type="hidden" name="imagem_id" value="<?= (int) $imagem['id'] ?>">
                                         <button type="submit" name="excluir_imagem"
                                                 class="btn btn-outline-danger btn-sm w-100">
@@ -346,6 +354,7 @@ if (isset($_GET['ok'])) {
             </p>
 
             <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                 <div class="row g-3 align-items-end">
                     <div class="col-md-8">
                         <label for="nova_imagem" class="form-label">Selecionar arquivo</label>

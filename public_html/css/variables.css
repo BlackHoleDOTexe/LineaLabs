@@ -1,0 +1,12 @@
+/* variables.css - Identidade Visual Linea Labs */
+:root {
+  --primary-color: #212529;    /* Preto do cabeçalho/botões */
+  --secondary-color: #a7a7a7;  /* Cinza da paginação */
+  --accent-color: #198754;     /* Verde dos preços */
+  --bg-light: #f8f9fa;         /* Fundo claro (Hero/Seções) */
+  --white: #ffffff;
+  --danger-red: #ff0000;       /* Cor do botão de voltar/erro */
+  --primary-gold: #b8922e;     /* Dourado premium — CTAs e destaques */
+  --primary-gold-hover: #8a6520; /* Marrom-dourado para hovering */
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);  /* Sombra suave dos cards */
+}

@@ -153,17 +153,23 @@ $queryBase = array_filter([
                             <a href="product-edit.php?id=<?= (int) $p['id'] ?>"
                                class="btn btn-outline-dark btn-sm">Editar</a>
 
-                            <a href="product-toggle.php?id=<?= (int) $p['id'] ?>"
-                               class="btn btn-outline-warning btn-sm"
-                               onclick="return confirm('Alterar status deste produto?')">
-                                <?= (int) $p['ativo'] === 1 ? 'Desativar' : 'Ativar' ?>
-                            </a>
+                            <form method="POST" action="product-toggle.php" style="display:inline"
+                                  onsubmit="return confirm('Alterar status deste produto?')">
+                                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
+                                <button type="submit" class="btn btn-outline-warning btn-sm">
+                                    <?= (int) $p['ativo'] === 1 ? 'Desativar' : 'Ativar' ?>
+                                </button>
+                            </form>
 
-                            <a href="product-delete.php?id=<?= (int) $p['id'] ?>"
-                               class="btn btn-outline-danger btn-sm"
-                               onclick="return confirm('Excluir permanentemente este produto e suas imagens?')">
-                                Excluir
-                            </a>
+                            <form method="POST" action="product-delete.php" style="display:inline"
+                                  onsubmit="return confirm('Excluir permanentemente este produto e suas imagens?')">
+                                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    Excluir
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>

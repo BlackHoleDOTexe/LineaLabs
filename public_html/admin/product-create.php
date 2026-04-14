@@ -9,6 +9,8 @@ $erro    = '';
 $sucesso = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verificarCsrf();
+
     $nome      = trim($_POST['nome']      ?? '');
     $descricao = trim($_POST['descricao'] ?? '');
     $dimensoes = trim($_POST['dimensoes'] ?? '');
@@ -106,7 +108,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
-            $erro = 'Erro ao salvar: ' . $e->getMessage();
+            error_log('[product-create] ' . $e->getMessage());
+            $erro = 'Erro interno ao salvar o produto. Tente novamente.';
         }
     }
 }
@@ -173,6 +176,7 @@ $categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
 
         <div class="admin-card">
             <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
 
                 <div class="row g-3">
                     <!-- Nome -->

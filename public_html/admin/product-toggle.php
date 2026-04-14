@@ -4,7 +4,14 @@ require_once __DIR__ . '/auth.php';
 
 exigirLogin();
 
-$id = (int)($_GET['id'] ?? 0);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: admin-dashboard.php?aba=produtos');
+    exit;
+}
+
+verificarCsrf();
+
+$id = (int)($_POST['id'] ?? 0);
 
 if ($id > 0) {
     $sql = "UPDATE produtos

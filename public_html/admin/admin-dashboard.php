@@ -11,6 +11,8 @@ $mensagemConfig = '';
 $erroConfig     = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_configuracoes'])) {
+    verificarCsrf();
+
     $chavesPermitidas = [
         'razao_social', 'nome_fantasia', 'inscricao_estadual',
         'custo_material_cm2', 'custo_minuto_maquina', 'markup_padrao',
@@ -50,6 +52,8 @@ $mensagemOrc = '';
 $erroOrc     = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_orcamento'])) {
+    verificarCsrf();
+
     $nomeCliente    = trim($_POST['nome_cliente']    ?? '');
     $descricaoPeca  = trim($_POST['descricao_peca']  ?? '');
     $largura        = str_replace(',', '.', $_POST['largura_cm']           ?? '0');
@@ -311,6 +315,7 @@ if (isset($_GET['msg'])) {
                     <h2 class="h5 mb-4">Nova Simulação</h2>
 
                     <form method="POST" id="form-orcamento">
+                        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Cliente (opcional)</label>
@@ -472,6 +477,7 @@ if (isset($_GET['msg'])) {
         <?php endif; ?>
 
         <form method="POST">
+            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
             <div class="row g-4">
                 <!-- Dados Fiscais -->
                 <div class="col-lg-6">

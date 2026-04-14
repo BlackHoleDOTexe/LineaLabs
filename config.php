@@ -3,7 +3,7 @@
 $env = parse_ini_file(__DIR__ . '/.env');
 
 if (!$env) {
-    die('Erro ao carregar .env');
+    die('Erro interno. Tente novamente mais tarde.');
 }
 
 $host = $env['DB_HOST'];
@@ -23,5 +23,6 @@ $options = [
 try {
     $pdo = new PDO($dsn, $user, $pass, $options);
 } catch (PDOException $e) {
-    die('Erro ao conectar: ' . $e->getMessage());
+    error_log('[config] DB connection error: ' . $e->getMessage());
+    die('Erro interno. Tente novamente mais tarde.');
 }
