@@ -14,7 +14,7 @@ window.carregarPagina = async function (
     if (precoMin.trim()  !== '') params.set('preco_min', precoMin.trim());
     if (precoMax.trim()  !== '') params.set('preco_max', precoMax.trim());
 
-    const resposta = await fetch(`catalogo.php?${params.toString()}`, {
+    const resposta = await fetch(`catalog/index.php?${params.toString()}`, {
       headers: { 'X-Requested-With': 'XMLHttpRequest' }
     });
 

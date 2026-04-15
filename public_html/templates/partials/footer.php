@@ -1,7 +1,7 @@
 <?php
-require_once dirname(__DIR__) . '/private/config.php';
+// Garante que as constantes da empresa estão disponíveis
+// (config.php já deve ter sido carregado pelo controlador)
 ?>
-
 <footer class="footer bg-dark text-light border-top border-secondary">
   <div class="container py-4">
     <div class="row g-4">
@@ -16,7 +16,6 @@ require_once dirname(__DIR__) . '/private/config.php';
             Nossa História <i class="bi bi-arrow-right"></i>
             </a>
         </p>
-
         <p class="small text-white-50 mb-0">
           <i class="bi bi-geo-alt-fill me-1 text-light"></i> <?= EMP_ENDERECO ?>
         </p>

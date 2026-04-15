@@ -1,12 +1,13 @@
 <?php
 /**
- * Helper de processamento de imagens.
+ * Serviço de processamento de imagens.
  * Converte qualquer imagem enviada para WebP e redimensiona se necessário.
  */
 
 /**
  * Processa uma imagem enviada via upload:
  * - Valida o tipo MIME real (via getimagesize, não extensão)
+ * - Corrige rotação baseada nos dados EXIF (JPEG)
  * - Redimensiona para no máximo $maxLargura px de largura, mantendo proporção
  * - Converte e salva como .webp
  *
@@ -14,7 +15,7 @@
  * @param  string $diretorio   Diretório de destino (com barra final)
  * @param  string $prefixo     Prefixo para o nome do arquivo gerado
  * @param  int    $maxLargura  Largura máxima em pixels (default: 1200)
- * @param  int    $qualidade   Qualidade WebP de 0–100 (default: 85)
+ * @param  int    $qualidade   Qualidade WebP de 0–100 (default: 90)
  * @return string|false        Nome do arquivo .webp gerado, ou false em caso de erro
  */
 function processarImagemWebP(
@@ -46,22 +47,16 @@ function processarImagemWebP(
         default      => false,
     };
 
-    if($mime === 'image/jpeg'){
+    if ($mime === 'image/jpeg') {
         $exif = @exif_read_data($tmpFile);
-        if($exif && isset($exif['Orientation'])) {
-            $orientation = $exif['Orientation'];
-            switch ($orientation) {
-                case 3:
-                    $src = imagerotate($src, 180, 0);
-                    break;
-                case 6:
-                    $src = imagerotate($src, -90, 0);
-                    break;
-                case 8:
-                    $src = imagerotate($src, 90, 0);
-                    break;
-            }
-        }   
+        if ($exif && isset($exif['Orientation'])) {
+            $src = match ($exif['Orientation']) {
+                3 => imagerotate($src, 180, 0),
+                6 => imagerotate($src, -90, 0),
+                8 => imagerotate($src, 90, 0),
+                default => $src,
+            };
+        }
     }
 
     if (!$src) {
@@ -71,7 +66,6 @@ function processarImagemWebP(
     $larguraOrig = imagesx($src);
     $alturaOrig  = imagesy($src);
 
-    // Redimensiona se a largura exceder o máximo permitido
     if ($larguraOrig > $maxLargura) {
         $ratio       = $maxLargura / $larguraOrig;
         $novaLargura = $maxLargura;
@@ -79,7 +73,6 @@ function processarImagemWebP(
 
         $resized = imagecreatetruecolor($novaLargura, $novaAltura);
 
-        // Preserva canal alfa (transparência de PNG/WebP)
         imagealphablending($resized, false);
         imagesavealpha($resized, true);
         $bg = imagecolorallocatealpha($resized, 0, 0, 0, 127);

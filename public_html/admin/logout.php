@@ -1,6 +1,5 @@
 <?php
-
-require_once __DIR__ . '/auth.php';
+require_once dirname(__DIR__) . '/app/Service/Auth.php';
 
 $_SESSION = [];
 
@@ -19,5 +18,5 @@ if (ini_get('session.use_cookies')) {
 
 session_destroy();
 
-header('Location: admin-login.php');
+header('Location: login.php');
 exit;

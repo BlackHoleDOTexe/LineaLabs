@@ -116,7 +116,7 @@ require_once dirname(__DIR__) . '/private/config.php';
   </div>
 </section>
 
-<?php include 'footer.php'; ?>
+<?php include __DIR__ . '/templates/partials/footer.php'; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>

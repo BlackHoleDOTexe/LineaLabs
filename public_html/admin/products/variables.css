@@ -1,0 +1,10 @@
+/* variables.css — Products Admin — Linea Labs */
+:root {
+  --products-btn-padding: 0.5rem 1.5rem;
+  --products-btn-font-weight: 500;
+  --stat-card-bg: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  --stat-card-radius: 10px;
+  --stat-card-padding: 1.5rem;
+  --gallery-img-height: 180px;
+  --gallery-preview-height: 80px;
+}

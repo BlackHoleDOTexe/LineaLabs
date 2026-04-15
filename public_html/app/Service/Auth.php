@@ -1,11 +1,10 @@
-
 <?php
 
 if (session_status() === PHP_SESSION_NONE) {
     session_set_cookie_params([
         'lifetime' => 0,
         'path'     => '/',
-        'secure'   => true,
+        'secure'   => !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
         'httponly' => true,
         'samesite' => 'Strict',
     ]);
@@ -24,7 +23,7 @@ function adminEstaLogado(): bool
 function exigirLogin(): void
 {
     if (!adminEstaLogado()) {
-        header('Location: admin-login.php');
+        header('Location: /admin/login.php');
         exit;
     }
 
@@ -48,7 +47,7 @@ function exigirLogin(): void
 
         session_destroy();
 
-        header('Location: admin-login.php?timeout=1');
+        header('Location: /admin/login.php?timeout=1');
         exit;
     }
 
@@ -67,7 +66,7 @@ function verificarCsrf(): void
 function redirecionarSeLogado(): void
 {
     if (adminEstaLogado()) {
-        header('Location: admin-dashboard.php');
+        header('Location: /admin/index.php');
         exit;
     }
 }

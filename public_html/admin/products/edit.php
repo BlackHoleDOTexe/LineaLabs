@@ -1,24 +1,26 @@
 <?php
-require_once dirname(__DIR__, 2) . '/private/config.php';
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/includes/image-helper.php';
+require_once dirname(__DIR__, 3) . '/private/config.php';
+require_once dirname(__DIR__, 2) . '/app/Service/Auth.php';
+require_once dirname(__DIR__, 2) . '/app/Service/Image.php';
+require_once dirname(__DIR__, 2) . '/app/Repository/ProductRepository.php';
+require_once dirname(__DIR__, 2) . '/app/Repository/ImageRepository.php';
 
 exigirLogin();
+
+$productRepo = new ProductRepository($pdo);
+$imageRepo   = new ImageRepository($pdo);
 
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
 if (!$id) {
-    header('Location: admin-dashboard.php?aba=produtos');
+    header('Location: ../index.php?aba=produtos');
     exit;
 }
 
-// Carrega produto
-$stmt = $pdo->prepare("SELECT * FROM produtos WHERE id = :id LIMIT 1");
-$stmt->execute([':id' => $id]);
-$produto = $stmt->fetch();
+$produto = $productRepo->findById($id);
 
 if (!$produto) {
-    header('Location: admin-dashboard.php?aba=produtos');
+    header('Location: ../index.php?aba=produtos');
     exit;
 }
 
@@ -34,29 +36,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['excluir_imagem'])) {
     $imagemId = filter_input(INPUT_POST, 'imagem_id', FILTER_VALIDATE_INT);
 
     if ($imagemId) {
-        $stmtImg = $pdo->prepare(
-            "SELECT * FROM produto_imagens WHERE id = :id AND produto_id = :pid LIMIT 1"
-        );
-        $stmtImg->execute([':id' => $imagemId, ':pid' => $id]);
-        $imagem = $stmtImg->fetch();
+        $imagem = $imageRepo->findByIdAndProduct($imagemId, $id);
 
         if ($imagem) {
-            $caminho = dirname(__DIR__, 2) . '/private/uploads/products/' . basename($imagem['arquivo']);
+            $caminho = dirname(__DIR__, 3) . '/private/uploads/products/' . basename($imagem['arquivo']);
             if (is_file($caminho)) {
                 unlink($caminho);
             }
-
-            $pdo->prepare("DELETE FROM produto_imagens WHERE id = :id")
-                ->execute([':id' => $imagemId]);
+            $imageRepo->delete($imagemId);
         }
     }
 
-    header('Location: product-edit.php?id=' . $id . '&ok=img_excluida');
+    header('Location: edit.php?id=' . $id . '&ok=img_excluida');
     exit;
 }
 
 // ----------------------------------------------------------------
-// Ação: Adicionar nova imagem (com conversão WebP)
+// Ação: Adicionar nova imagem
 // ----------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adicionar_imagem'])) {
     verificarCsrf();
@@ -68,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adicionar_imagem'])) 
     } elseif ($_FILES['nova_imagem']['size'] > 10 * 1024 * 1024) {
         $erro = 'A imagem deve ter no máximo 10 MB.';
     } else {
-        $uploadDir = dirname(__DIR__, 2) . '/private/uploads/products/';
+        $uploadDir = dirname(__DIR__, 3) . '/private/uploads/products/';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
@@ -79,18 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['adicionar_imagem'])) 
         if ($nomeArquivo === false) {
             $erro = 'Formato inválido. Use JPG, JPEG, PNG, WebP ou GIF.';
         } else {
-            $stmtOrdem = $pdo->prepare(
-                "SELECT COALESCE(MAX(ordem), 0) + 1 FROM produto_imagens WHERE produto_id = :pid"
-            );
-            $stmtOrdem->execute([':pid' => $id]);
-            $proximaOrdem = (int) $stmtOrdem->fetchColumn();
+            $proximaOrdem = $imageRepo->nextOrder($id);
+            $imageRepo->create($id, $nomeArquivo, $proximaOrdem);
 
-            $pdo->prepare(
-                "INSERT INTO produto_imagens (produto_id, arquivo, ordem)
-                 VALUES (:pid, :arquivo, :ordem)"
-            )->execute([':pid' => $id, ':arquivo' => $nomeArquivo, ':ordem' => $proximaOrdem]);
-
-            header('Location: product-edit.php?id=' . $id . '&ok=img_adicionada');
+            header('Location: edit.php?id=' . $id . '&ok=img_adicionada');
             exit;
         }
     }
@@ -114,50 +102,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_produto'])) {
     } elseif (!is_numeric($preco) || (float) $preco < 0) {
         $erro = 'Informe um preço válido (ex: 29,90).';
     } else {
-        $pdo->prepare(
-            "UPDATE produtos
-             SET nome = :nome, descricao = :descricao, dimensoes = :dimensoes,
-                 preco = :preco, categoria = :categoria, ativo = :ativo
-             WHERE id = :id"
-        )->execute([
-            ':nome'      => $nome,
-            ':descricao' => $descricao !== '' ? $descricao : null,
-            ':dimensoes' => $dimensoes !== '' ? $dimensoes : null,
-            ':preco'     => (float) $preco,
-            ':categoria' => $categoria !== '' ? $categoria : null,
-            ':ativo'     => $ativo,
-            ':id'        => $id,
+        $productRepo->update($id, [
+            'nome'      => $nome,
+            'descricao' => $descricao !== '' ? $descricao : null,
+            'dimensoes' => $dimensoes !== '' ? $dimensoes : null,
+            'preco'     => (float) $preco,
+            'categoria' => $categoria !== '' ? $categoria : null,
+            'ativo'     => $ativo,
         ]);
 
-        header('Location: product-edit.php?id=' . $id . '&ok=salvo');
+        header('Location: edit.php?id=' . $id . '&ok=salvo');
         exit;
     }
 }
 
 // ----------------------------------------------------------------
-// Recarrega produto e imagens (após possíveis alterações)
+// Recarrega produto e imagens
 // ----------------------------------------------------------------
-$stmt->execute([':id' => $id]);
-$produto = $stmt->fetch();
+$produto = $productRepo->findById($id);
+$imagens = $imageRepo->findByProduct($id);
+$categorias = $productRepo->getAllCategories();
 
-$stmtImagens = $pdo->prepare(
-    "SELECT * FROM produto_imagens WHERE produto_id = :pid ORDER BY ordem, id"
-);
-$stmtImagens->execute([':pid' => $id]);
-$imagens = $stmtImagens->fetchAll();
-
-// Categorias para datalist
-$sqlCats    = "SELECT DISTINCT categoria FROM produtos
-               WHERE categoria IS NOT NULL AND categoria <> ''
-               ORDER BY categoria";
-$categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
-
-// Mensagem de sucesso via redirect
 if (isset($_GET['ok'])) {
     $mensagensOk = [
-        'salvo'         => 'Produto atualizado com sucesso!',
-        'img_adicionada'=> 'Imagem adicionada com sucesso!',
-        'img_excluida'  => 'Imagem excluída com sucesso!',
+        'salvo'          => 'Produto atualizado com sucesso!',
+        'img_adicionada' => 'Imagem adicionada com sucesso!',
+        'img_excluida'   => 'Imagem excluída com sucesso!',
     ];
     $sucesso = $mensagensOk[$_GET['ok']] ?? '';
 }
@@ -170,7 +140,8 @@ if (isset($_GET['ok'])) {
     <title>Editar Produto — Linea Labs</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../css/admin_dashboard.css?v=<?= APP_version ?>">
+    <link rel="stylesheet" href="../../css/admin_dashboard.css?v=<?= APP_version ?>">
+    <link rel="stylesheet" href="edit.css?v=<?= APP_version ?>">
 </head>
 <body class="admin-body">
 <div class="admin-wrapper">
@@ -178,21 +149,21 @@ if (isset($_GET['ok'])) {
     <aside class="admin-sidebar">
         <h2 class="logo mb-4">Linea Labs</h2>
         <nav class="nav flex-column gap-1">
-            <a class="nav-link" href="admin-dashboard.php?aba=produtos">
+            <a class="nav-link" href="../index.php?aba=produtos">
                 <i class="bi bi-box-seam me-2"></i>Produtos
             </a>
             <a class="nav-link active" href="#">
                 <i class="bi bi-pencil me-2"></i>Editar Produto
             </a>
-            <a class="nav-link" href="admin-dashboard.php?aba=orcamentos">
+            <a class="nav-link" href="../index.php?aba=orcamentos">
                 <i class="bi bi-calculator me-2"></i>Orçamentos
             </a>
-            <a class="nav-link" href="admin-dashboard.php?aba=configuracoes">
+            <a class="nav-link" href="../index.php?aba=configuracoes">
                 <i class="bi bi-gear me-2"></i>Configurações
             </a>
         </nav>
         <div class="mt-auto pt-4">
-            <a class="nav-link text-danger" href="logout.php">
+            <a class="nav-link text-danger" href="../logout.php">
                 <i class="bi bi-box-arrow-right me-2"></i>Sair
             </a>
         </div>
@@ -208,12 +179,11 @@ if (isset($_GET['ok'])) {
                     <?= htmlspecialchars($produto['nome']) ?>
                 </p>
             </div>
-            <a href="admin-dashboard.php?aba=produtos" class="btn btn-outline-dark btn-sm">
+            <a href="../index.php?aba=produtos" class="btn btn-outline-dark btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>Voltar
             </a>
         </div>
 
-        <!-- Feedback -->
         <?php if ($sucesso !== ''): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="bi bi-check-circle me-2"></i><?= htmlspecialchars($sucesso) ?>
@@ -227,7 +197,7 @@ if (isset($_GET['ok'])) {
             </div>
         <?php endif; ?>
 
-        <!-- ====== Formulário de dados ====== -->
+        <!-- Formulário de dados -->
         <div class="admin-card mb-4">
             <h2 class="h5 mb-4">Dados do Produto</h2>
 
@@ -299,7 +269,7 @@ if (isset($_GET['ok'])) {
             </form>
         </div>
 
-        <!-- ====== Galeria de imagens ====== -->
+        <!-- Galeria de imagens -->
         <div class="admin-card mb-4">
             <h2 class="h5 mb-4">
                 <i class="bi bi-images me-2 text-muted"></i>Imagens
@@ -317,13 +287,12 @@ if (isset($_GET['ok'])) {
                             <div class="card h-100 shadow-sm">
                                 <img
                                     src="/media/image.php?file=<?= urlencode($imagem['arquivo']) ?>"
-                                    class="card-img-top"
+                                    class="card-img-top edit-gallery-img"
                                     alt="Imagem do produto"
-                                    style="height:180px;object-fit:cover;"
                                     loading="lazy"
                                 >
                                 <div class="card-footer p-2 bg-white border-top">
-                                    <small class="text-muted d-block mb-1" style="font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                    <small class="text-muted d-block mb-1 edit-img-filename">
                                         <?= htmlspecialchars($imagem['arquivo']) ?>
                                     </small>
                                     <form method="POST"
@@ -343,7 +312,7 @@ if (isset($_GET['ok'])) {
             <?php endif; ?>
         </div>
 
-        <!-- ====== Adicionar nova imagem ====== -->
+        <!-- Adicionar nova imagem -->
         <div class="admin-card">
             <h2 class="h5 mb-3">
                 <i class="bi bi-cloud-upload me-2 text-muted"></i>Adicionar Imagem
@@ -361,7 +330,6 @@ if (isset($_GET['ok'])) {
                         <input type="file" id="nova_imagem" name="nova_imagem"
                                class="form-control"
                                accept=".jpg,.jpeg,.png,.webp,.gif" required>
-                        <!-- Preview da imagem selecionada -->
                         <div id="preview-nova" class="mt-2"></div>
                     </div>
                     <div class="col-md-4">
@@ -378,7 +346,6 @@ if (isset($_GET['ok'])) {
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Preview da nova imagem antes do envio
 document.getElementById('nova_imagem').addEventListener('change', function () {
     const container = document.getElementById('preview-nova');
     container.innerHTML = '';
@@ -390,8 +357,7 @@ document.getElementById('nova_imagem').addEventListener('change', function () {
     reader.onload = e => {
         const img = document.createElement('img');
         img.src = e.target.result;
-        img.className = 'rounded border';
-        img.style.cssText = 'max-height:120px;max-width:200px;object-fit:cover;';
+        img.className = 'rounded border edit-img-preview';
         container.appendChild(img);
     };
     reader.readAsDataURL(file);

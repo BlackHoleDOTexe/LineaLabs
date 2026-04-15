@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n \"$erroOrc\\\\s*=\" admin/index.php)",
+      "Bash(grep:*)",
+      "Bash(php -r \"echo dirname\\(__DIR__, 3\\) . ''/private/uploads/products/'';\")",
+      "Bash(find . -name *.log -type f)",
+      "Bash(curl -I \"http://localhost/admin/products/toggle.php\")",
+      "Bash(php -i)",
+      "Bash(php -f \"api/products.php\")",
+      "Bash(dir:*)",
+      "Bash(del:*)",
+      "Bash(powershell -Command \"Remove-Item 'admin/products/confirm_delete.php', 'admin/products/confirm_toggle.php', 'admin/quotes/confirm_delete.php' -ErrorAction SilentlyContinue\")",
+      "Bash(ls:*)",
+      "Bash(php:*)",
+      "Bash(find:*)"
+    ]
+  }
+}

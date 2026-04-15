@@ -1,0 +1,20 @@
+/* edit.css — Editar Produto */
+@import "variables.css";
+
+.edit-gallery-img {
+    height: var(--gallery-img-height);
+    object-fit: cover;
+}
+
+.edit-img-filename {
+    font-size: .7rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.edit-img-preview {
+    max-height: 120px;
+    max-width: 200px;
+    object-fit: cover;
+}

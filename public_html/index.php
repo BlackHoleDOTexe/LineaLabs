@@ -34,7 +34,7 @@ require_once dirname(__DIR__) . '/private/config.php';
     <h2 class="mb-4 text-center">CONHEÇA NOSSOS PRODUTOS</h2>
 
     <div id="catalogo-container">
-      <?php include __DIR__ . '/catalogo.php'; ?>
+      <?php include __DIR__ . '/catalog/index.php'; ?>
     </div>
   </div>
 </section>
@@ -45,7 +45,7 @@ require_once dirname(__DIR__) . '/private/config.php';
     <p class="lead text-white-50 mb-4 mx-auto" style="max-width: 640px;">
       Não encontrou exatamente o que desejava em nosso catálogo? Entre em contato para solicitar um orçamento personalizado. Desenvolvemos peças e projetos sob medida, com atenção aos detalhes, qualidade no acabamento e foco na sua necessidade.
     </p>
-    <a href="https://wa.me/5544997554052" class="btn btn-gold btn-lg" target="_blank">
+    <a href="https://wa.me/<?= EMP_WHATSAPP ?>" class="btn btn-gold btn-lg" target="_blank">
       <i class="bi bi-whatsapp me-2"></i>Solicitar Orçamento
     </a>
   </div>
@@ -100,7 +100,7 @@ require_once dirname(__DIR__) . '/private/config.php';
   </div>
 </section>
 
-<?php include __DIR__ . '/footer.php'; ?>
+<?php include __DIR__ . '/templates/partials/footer.php'; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/index.js?v=<?= APP_version ?>"></script>

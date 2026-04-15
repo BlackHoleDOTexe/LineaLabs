@@ -1,9 +1,14 @@
 <?php
-require_once dirname(__DIR__, 2) . '/private/config.php';
-require_once __DIR__ . '/auth.php';
-require_once __DIR__ . '/includes/image-helper.php';
+require_once dirname(__DIR__, 3) . '/private/config.php';
+require_once dirname(__DIR__, 2) . '/app/Service/Auth.php';
+require_once dirname(__DIR__, 2) . '/app/Service/Image.php';
+require_once dirname(__DIR__, 2) . '/app/Repository/ProductRepository.php';
+require_once dirname(__DIR__, 2) . '/app/Repository/ImageRepository.php';
 
 exigirLogin();
+
+$productRepo = new ProductRepository($pdo);
+$imageRepo   = new ImageRepository($pdo);
 
 $erro    = '';
 $sucesso = '';
@@ -17,10 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $categoria = trim($_POST['categoria'] ?? '');
     $ativo     = isset($_POST['ativo']) ? 1 : 0;
 
-    // Normaliza preço (aceita vírgula ou ponto)
     $preco = str_replace(',', '.', trim($_POST['preco'] ?? ''));
 
-    // Validações
     if ($nome === '') {
         $erro = 'O nome do produto é obrigatório.';
     } elseif (!is_numeric($preco) || (float) $preco < 0) {
@@ -34,21 +37,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $pdo->beginTransaction();
 
-            // Insere produto
-            $sqlProduto = "INSERT INTO produtos (nome, descricao, dimensoes, preco, categoria, ativo)
-                           VALUES (:nome, :descricao, :dimensoes, :preco, :categoria, :ativo)";
-            $stmtProduto = $pdo->prepare($sqlProduto);
-            $stmtProduto->execute([
-                ':nome'      => $nome,
-                ':descricao' => $descricao !== '' ? $descricao : null,
-                ':dimensoes' => $dimensoes !== '' ? $dimensoes : null,
-                ':preco'     => (float) $preco,
-                ':categoria' => $categoria !== '' ? $categoria : null,
-                ':ativo'     => $ativo,
+            $produtoId = $productRepo->create([
+                'nome'      => $nome,
+                'descricao' => $descricao !== '' ? $descricao : null,
+                'dimensoes' => $dimensoes !== '' ? $dimensoes : null,
+                'preco'     => (float) $preco,
+                'categoria' => $categoria !== '' ? $categoria : null,
+                'ativo'     => $ativo,
             ]);
 
-            $produtoId  = (int) $pdo->lastInsertId();
-            $uploadDir  = dirname(__DIR__, 2) . '/private/uploads/products/';
+            $uploadDir = dirname(__DIR__, 3) . '/private/uploads/products/';
 
             if (!is_dir($uploadDir)) {
                 mkdir($uploadDir, 0755, true);
@@ -66,7 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $tmpFile = $arquivos['tmp_name'][$i];
                 $tamanho = $arquivos['size'][$i];
 
-                // Limite de 10 MB por imagem (o WebP terá tamanho menor)
                 if ($tamanho > 10 * 1024 * 1024) {
                     $errosImagem[] = "Imagem " . ($i + 1) . " excede 10 MB — ignorada.";
                     continue;
@@ -80,15 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     continue;
                 }
 
-                $sqlImagem = "INSERT INTO produto_imagens (produto_id, arquivo, ordem)
-                              VALUES (:produto_id, :arquivo, :ordem)";
-                $stmtImg   = $pdo->prepare($sqlImagem);
-                $stmtImg->execute([
-                    ':produto_id' => $produtoId,
-                    ':arquivo'    => $nomeArquivo,
-                    ':ordem'      => $i,
-                ]);
-
+                $imageRepo->create($produtoId, $nomeArquivo, $i);
                 $enviouAoMenosUma = true;
             }
 
@@ -100,25 +89,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $pdo->commit();
 
-            // Redireciona com mensagem de sucesso
-            header('Location: admin-dashboard.php?aba=produtos&msg=produto_criado');
+            header('Location: ../index.php?aba=produtos&msg=produto_criado');
             exit;
 
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
-            error_log('[product-create] ' . $e->getMessage());
+            error_log('[products/create] ' . $e->getMessage());
             $erro = 'Erro interno ao salvar o produto. Tente novamente.';
         }
     }
 }
 
-// Busca categorias existentes para o datalist
-$sqlCats   = "SELECT DISTINCT categoria FROM produtos
-              WHERE categoria IS NOT NULL AND categoria <> ''
-              ORDER BY categoria";
-$categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
+$categorias = $productRepo->getAllCategories();
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -128,7 +112,7 @@ $categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
     <title>Novo Produto — Linea Labs</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../css/admin_dashboard.css?v=<?= APP_version ?>">
+    <link rel="stylesheet" href="../../css/admin_dashboard.css?v=<?= APP_version ?>">
 </head>
 <body class="admin-body">
 <div class="admin-wrapper">
@@ -136,21 +120,21 @@ $categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
     <aside class="admin-sidebar">
         <h2 class="logo mb-4">Linea Labs</h2>
         <nav class="nav flex-column gap-1">
-            <a class="nav-link" href="admin-dashboard.php?aba=produtos">
+            <a class="nav-link" href="../index.php?aba=produtos">
                 <i class="bi bi-box-seam me-2"></i>Produtos
             </a>
             <a class="nav-link active" href="#">
                 <i class="bi bi-plus-circle me-2"></i>Novo Produto
             </a>
-            <a class="nav-link" href="admin-dashboard.php?aba=orcamentos">
+            <a class="nav-link" href="../index.php?aba=orcamentos">
                 <i class="bi bi-calculator me-2"></i>Orçamentos
             </a>
-            <a class="nav-link" href="admin-dashboard.php?aba=configuracoes">
+            <a class="nav-link" href="../index.php?aba=configuracoes">
                 <i class="bi bi-gear me-2"></i>Configurações
             </a>
         </nav>
         <div class="mt-auto pt-4">
-            <a class="nav-link text-danger" href="logout.php">
+            <a class="nav-link text-danger" href="../logout.php">
                 <i class="bi bi-box-arrow-right me-2"></i>Sair
             </a>
         </div>
@@ -162,7 +146,7 @@ $categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
                 <h1 class="h3 mb-1">Novo Produto</h1>
                 <p class="text-muted mb-0">Preencha os dados e envie as imagens</p>
             </div>
-            <a href="admin-dashboard.php?aba=produtos" class="btn btn-outline-dark btn-sm">
+            <a href="../index.php?aba=produtos" class="btn btn-outline-dark btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>Voltar
             </a>
         </div>
@@ -179,7 +163,6 @@ $categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
 
                 <div class="row g-3">
-                    <!-- Nome -->
                     <div class="col-12">
                         <label for="nome" class="form-label">Nome <span class="text-danger">*</span></label>
                         <input type="text" id="nome" name="nome" class="form-control"
@@ -187,14 +170,12 @@ $categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
                                placeholder="Ex: Cruz Decorativa em MDF" required>
                     </div>
 
-                    <!-- Descrição -->
                     <div class="col-12">
                         <label for="descricao" class="form-label">Descrição</label>
                         <textarea id="descricao" name="descricao" class="form-control" rows="5"
                                   placeholder="Descreva o produto em detalhes..."><?= htmlspecialchars($_POST['descricao'] ?? '') ?></textarea>
                     </div>
 
-                    <!-- Dimensões -->
                     <div class="col-md-6">
                         <label for="dimensoes" class="form-label">Dimensões</label>
                         <input type="text" id="dimensoes" name="dimensoes" class="form-control"
@@ -203,7 +184,6 @@ $categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
                         <div class="form-text">Formato livre. Ex: 30cm × 21cm × 9mm</div>
                     </div>
 
-                    <!-- Preço -->
                     <div class="col-md-3">
                         <label for="preco" class="form-label">Preço (R$) <span class="text-danger">*</span></label>
                         <input type="text" id="preco" name="preco" class="form-control"
@@ -212,7 +192,6 @@ $categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
                                inputmode="decimal" required>
                     </div>
 
-                    <!-- Categoria -->
                     <div class="col-md-3">
                         <label for="categoria" class="form-label">Categoria</label>
                         <input type="text" id="categoria" name="categoria" class="form-control"
@@ -226,7 +205,6 @@ $categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
                         </datalist>
                     </div>
 
-                    <!-- Imagens -->
                     <div class="col-12">
                         <label for="imagens" class="form-label">
                             Imagens <span class="text-danger">*</span>
@@ -236,12 +214,9 @@ $categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
                         </label>
                         <input type="file" id="imagens" name="imagens[]" class="form-control"
                                accept=".jpg,.jpeg,.png,.webp,.gif" multiple required>
-
-                        <!-- Preview de imagens antes do envio -->
                         <div id="preview-imagens" class="d-flex flex-wrap gap-2 mt-2"></div>
                     </div>
 
-                    <!-- Status -->
                     <div class="col-12">
                         <div class="form-check">
                             <input type="checkbox" id="ativo" name="ativo" class="form-check-input"
@@ -257,7 +232,7 @@ $categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
                     <button type="submit" class="btn btn-dark">
                         <i class="bi bi-save me-1"></i>Salvar Produto
                     </button>
-                    <a href="admin-dashboard.php?aba=produtos" class="btn btn-outline-secondary">Cancelar</a>
+                    <a href="../index.php?aba=produtos" class="btn btn-outline-secondary">Cancelar</a>
                 </div>
             </form>
         </div>
@@ -266,7 +241,6 @@ $categorias = $pdo->query($sqlCats)->fetchAll(PDO::FETCH_COLUMN);
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-// Preview de imagens no cliente
 document.getElementById('imagens').addEventListener('change', function () {
     const container = document.getElementById('preview-imagens');
     container.innerHTML = '';

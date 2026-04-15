@@ -5,12 +5,30 @@
  */
 
 require_once dirname(__DIR__, 3) . '/private/config.php';
-require_once dirname(__DIR__) . '/auth.php';
+require_once dirname(__DIR__, 2) . '/app/Service/Auth.php';
 
-exigirLogin();
+// Em chamadas AJAX, não redirecionar — retorna HTML de erro legível
+$timeout   = defined('ADMIN_SESSION_TIMEOUT') ? ADMIN_SESSION_TIMEOUT : 1800;
+$loggedIn  = adminEstaLogado();
+$timedOut  = $loggedIn && isset($_SESSION['ultimo_acesso'])
+             && (time() - $_SESSION['ultimo_acesso']) > $timeout;
 
-// --- Parâmetros de filtro ---
-$busca     = trim($_GET['busca']     ?? '');
+if (!$loggedIn || $timedOut) {
+    if ($timedOut) {
+        session_destroy();
+    }
+    http_response_code(401);
+    echo '<div class="alert alert-warning mb-0">'
+       . '<i class="bi bi-lock me-2"></i>Sessão expirada. '
+       . '<a href="/admin/login.php">Fazer login novamente</a></div>';
+    exit;
+}
+
+$_SESSION['ultimo_acesso'] = time();
+
+header('Content-Type: text/html; charset=utf-8');
+
+$busca     = mb_substr(trim($_GET['busca']     ?? ''), 0, 150);
 $categoria = trim($_GET['categoria'] ?? '');
 $status    = $_GET['status']         ?? '';
 $precoMin  = $_GET['preco_min']      ?? '';
@@ -25,16 +43,17 @@ $params = [];
 if ($busca !== '') {
     $palavras = preg_split('/\s+/', $busca, -1, PREG_SPLIT_NO_EMPTY);
     foreach ($palavras as $idx => $palavra) {
+        $palavraSafe = '%' . addcslashes($palavra, '%_\\') . '%';
         $pNome = ":bN{$idx}";
         $pDesc = ":bD{$idx}";
-        $where[]       = "(nome LIKE {$pNome} OR COALESCE(descricao,'') LIKE {$pDesc})";
-        $params[$pNome] = '%' . $palavra . '%';
-        $params[$pDesc] = '%' . $palavra . '%';
+        $where[]        = "(nome LIKE {$pNome} OR COALESCE(descricao,'') LIKE {$pDesc})";
+        $params[$pNome] = $palavraSafe;
+        $params[$pDesc] = $palavraSafe;
     }
 }
 
 if ($categoria !== '') {
-    $where[]           = 'categoria = :categoria';
+    $where[]              = 'categoria = :categoria';
     $params[':categoria'] = $categoria;
 }
 
@@ -44,27 +63,26 @@ if ($status !== '' && in_array($status, ['1', '0'], true)) {
 }
 
 if (is_numeric($precoMin) && $precoMin !== '') {
-    $where[]             = 'preco >= :preco_min';
+    $where[]              = 'preco >= :preco_min';
     $params[':preco_min'] = (float) $precoMin;
 }
 
 if (is_numeric($precoMax) && $precoMax !== '') {
-    $where[]             = 'preco <= :preco_max';
+    $where[]              = 'preco <= :preco_max';
     $params[':preco_max'] = (float) $precoMax;
 }
 
 $whereSQL = 'WHERE ' . implode(' AND ', $where);
 
 // --- Contagem total ---
-$sqlCount   = "SELECT COUNT(*) FROM produtos {$whereSQL}";
-$stmtCount  = $pdo->prepare($sqlCount);
+$sqlCount  = "SELECT COUNT(*) FROM produtos {$whereSQL}";
+$stmtCount = $pdo->prepare($sqlCount);
 foreach ($params as $k => $v) {
     $stmtCount->bindValue($k, $v, is_int($v) ? PDO::PARAM_INT : PDO::PARAM_STR);
 }
 $stmtCount->execute();
 $total        = (int) $stmtCount->fetchColumn();
-$totalPaginas = (int) ceil($total / $porPagina);
-$totalPaginas = max(1, $totalPaginas);
+$totalPaginas = max(1, (int) ceil($total / $porPagina));
 $pagina       = min($pagina, $totalPaginas);
 $offset       = ($pagina - 1) * $porPagina;
 
@@ -83,15 +101,6 @@ $stmtProdutos->bindValue(':limite', $porPagina, PDO::PARAM_INT);
 $stmtProdutos->bindValue(':offset', $offset,    PDO::PARAM_INT);
 $stmtProdutos->execute();
 $produtos = $stmtProdutos->fetchAll();
-
-// --- Monta query string para paginação (preserva filtros ativos) ---
-$queryBase = array_filter([
-    'busca'     => $busca,
-    'categoria' => $categoria,
-    'status'    => $status,
-    'preco_min' => $precoMin,
-    'preco_max' => $precoMax,
-], fn($v) => $v !== '');
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -150,26 +159,23 @@ $queryBase = array_filter([
                             <?php endif; ?>
                         </td>
                         <td class="text-end">
-                            <a href="product-edit.php?id=<?= (int) $p['id'] ?>"
-                               class="btn btn-outline-dark btn-sm">Editar</a>
+                            <div class="d-flex gap-1 justify-content-end">
+                                <a href="products/edit.php?id=<?= (int) $p['id'] ?>"
+                                   class="btn btn-outline-dark btn-sm d-flex align-items-center gap-1">
+                                    <i class="bi bi-pencil"></i>Editar
+                                </a>
 
-                            <form method="POST" action="product-toggle.php" style="display:inline"
-                                  onsubmit="return confirm('Alterar status deste produto?')">
-                                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                                <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
-                                <button type="submit" class="btn btn-outline-warning btn-sm">
+                                <a href="products/status.php?id=<?= (int) $p['id'] ?>"
+                                   class="btn btn-outline-<?= (int) $p['ativo'] === 1 ? 'warning' : 'success' ?> btn-sm d-flex align-items-center gap-1">
+                                    <i class="bi <?= (int) $p['ativo'] === 1 ? 'bi-pause-circle' : 'bi-play-circle' ?>"></i>
                                     <?= (int) $p['ativo'] === 1 ? 'Desativar' : 'Ativar' ?>
-                                </button>
-                            </form>
+                                </a>
 
-                            <form method="POST" action="product-delete.php" style="display:inline"
-                                  onsubmit="return confirm('Excluir permanentemente este produto e suas imagens?')">
-                                <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
-                                <input type="hidden" name="id" value="<?= (int) $p['id'] ?>">
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                    Excluir
-                                </button>
-                            </form>
+                                <a href="products/delete.php?id=<?= (int) $p['id'] ?>"
+                                   class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1">
+                                    <i class="bi bi-trash3"></i>Excluir
+                                </a>
+                            </div>
                         </td>
                     </tr>
                 <?php endforeach; ?>

@@ -1,0 +1,32 @@
+/* delete.css — Excluir Produto */
+@import "variables.css";
+
+.delete-card {
+    border-left: 4px solid var(--bs-danger);
+}
+
+.btn-delete {
+    padding: var(--products-btn-padding);
+    font-weight: var(--products-btn-font-weight);
+}
+
+.image-preview {
+    height: var(--gallery-preview-height);
+    object-fit: cover;
+    border-radius: 6px;
+    transition: transform 0.2s;
+}
+
+.image-preview:hover {
+    transform: scale(1.05);
+}
+
+.stat-card {
+    background: var(--stat-card-bg);
+    border-radius: var(--stat-card-radius);
+    padding: var(--stat-card-padding);
+}
+
+.delete-badge-icon {
+    font-size: 0.7rem;
+}

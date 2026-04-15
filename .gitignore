@@ -2,3 +2,4 @@
 .env.local
 uploads/
 private/
+.openclaud/

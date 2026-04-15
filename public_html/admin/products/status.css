@@ -1,0 +1,12 @@
+/* status.css — Alterar Status do Produto */
+@import "variables.css";
+
+/* --status-color é definida dinamicamente pelo PHP via <style> inline mínimo */
+.status-card {
+    border-left: 4px solid var(--status-color);
+}
+
+.btn-status {
+    padding: var(--products-btn-padding);
+    font-weight: var(--products-btn-font-weight);
+}
