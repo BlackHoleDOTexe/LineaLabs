@@ -1,0 +1,30 @@
+# Permitir acesso a imagens
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico|bmp)$">
+    Allow from all
+</FilesMatch>
+
+# Headers de cache para imagens
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico|bmp)$">
+    Header set Cache-Control "public, max-age=2592000"
+    Header set Expires "max"
+</FilesMatch>
+
+# Bloquear execução de scripts
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phps .cgi .pl .asp .aspx .shtml .shtm .fcgi .fpl .jsp
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .phps .cgi .pl .asp .aspx .shtml .shtm .fcgi .fpl .jsp
+
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|phps|cgi|pl|asp|aspx|shtml|shtm|fcgi|fpl|jsp)$">
+    Require all denied
+</FilesMatch>
+
+# Não permitir listagem de diretório
+Options -Indexes
+
+# Proteção contra hotlinking (descomente e ajuste o domínio)
+# RewriteEngine On
+# RewriteCond %{HTTP_REFERER} !^$
+# RewriteCond %{HTTP_REFERER} !^https?://(www\.)?seusite\.com/.*$ [NC]
+# RewriteRule \.(jpg|jpeg|png|gif|webp|svg)$ - [F,L]
+
+# Headers de segurança para imagens
+Header always set X-Content-Type-Options "nosniff"

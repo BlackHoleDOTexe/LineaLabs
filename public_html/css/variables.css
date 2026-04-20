@@ -1,12 +1,21 @@
 /* variables.css - Identidade Visual Linea Labs */
 :root {
-  --primary-color: #212529;    /* Preto do cabeçalho/botões */
-  --secondary-color: #a7a7a7;  /* Cinza da paginação */
+  --primary-color: #1a1a1a;    /* Preto mais suave */
+  --secondary-color: #6c757d;  /* Cinza mais escuro para melhor contraste */
   --accent-color: #198754;     /* Verde dos preços */
+  --accent-hover: #157347;     /* Verde mais escuro para hover */
   --bg-light: #f8f9fa;         /* Fundo claro (Hero/Seções) */
+  --bg-lighter: #fefefe;       /* Fundo mais claro para cards */
   --white: #ffffff;
-  --danger-red: #ff0000;       /* Cor do botão de voltar/erro */
+  --danger-red: #dc3545;       /* Vermelho mais moderno */
   --primary-gold: #b8922e;     /* Dourado premium — CTAs e destaques */
-  --primary-gold-hover: #8a6520; /* Marrom-dourado para hovering */
-  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);  /* Sombra suave dos cards */
+  --primary-gold-hover: #9a7a26; /* Dourado mais escuro para hover */
+  --gold-light: #e6d7a8;       /* Dourado claro para efeitos */
+  --card-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);  /* Sombra mais pronunciada */
+  --card-shadow-hover: 0 20px 50px rgba(0, 0, 0, 0.15); /* Sombra no hover */
+  --border-radius-sm: 10px;
+  --border-radius-md: 16px;
+  --border-radius-lg: 24px;
+  --transition-smooth: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --transition-fast: cubic-bezier(0.4, 0, 0.2, 1);
 }

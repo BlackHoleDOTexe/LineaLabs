@@ -1,0 +1,24 @@
+# Permitir acesso a arquivos JavaScript
+<FilesMatch "\.(js|map)$">
+    Allow from all
+</FilesMatch>
+
+# Headers de cache para JS
+<FilesMatch "\.js$">
+    Header set Cache-Control "public, max-age=604800, immutable"
+    Header set Expires "max"
+</FilesMatch>
+
+# Bloquear execução de scripts PHP
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phps .cgi .pl .asp .aspx .shtml .shtm .fcgi .fpl .jsp
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .phps .cgi .pl .asp .aspx .shtml .shtm .fcgi .fpl .jsp
+
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|phps|cgi|pl|asp|aspx|shtml|shtm|fcgi|fpl|jsp)$">
+    Require all denied
+</FilesMatch>
+
+# Não permitir listagem de diretório
+Options -Indexes
+
+# CSP header para scripts (ajustar conforme necessário)
+Header always set Content-Security-Policy "script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'"

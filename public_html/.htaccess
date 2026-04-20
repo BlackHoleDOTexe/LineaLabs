@@ -1,0 +1,61 @@
+# Proteções gerais de segurança
+Options -Indexes
+ServerSignature Off
+
+# Proteção contra clickjacking
+Header always set X-Frame-Options "SAMEORIGIN"
+
+# Proteção XSS
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-XSS-Protection "1; mode=block"
+
+# HSTS (HTTP Strict Transport Security)
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+# Referrer Policy
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+# Content Security Policy (CSP) - ajustar conforme necessário
+# Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net; img-src 'self' data:;"
+
+# Proteção contra MIME type sniffing
+Header always set X-Content-Type-Options "nosniff"
+
+# Cache control para arquivos sensíveis
+<FilesMatch "\.(php|inc|conf|config|sql|log|txt)$">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "Thu, 01 Jan 1970 00:00:00 GMT"
+</FilesMatch>
+
+# Redirecionar HTTP para HTTPS (se estiver usando SSL)
+# RewriteEngine On
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+# Proteção contra hotlinking de imagens
+# RewriteEngine On
+# RewriteCond %{HTTP_REFERER} !^$
+# RewriteCond %{HTTP_REFERER} !^https?://(www\.)?seusite\.com/.*$ [NC]
+# RewriteRule \.(jpg|jpeg|png|gif|webp)$ - [F]
+
+# Bloquear acesso a arquivos sensíveis
+<FilesMatch "^(\.env|\.git|composer\.json|composer\.lock|package\.json|package-lock\.json|\.htaccess)$">
+    Require all denied
+</FilesMatch>
+
+# Bloquear user agents maliciosos
+SetEnvIfNoCase User-Agent "libwww-perl|wget|curl|httrack|harvest|extract|grab|miner|scanner" bad_bot
+Deny from env=bad_bot
+
+# Limitar métodos HTTP permitidos
+<LimitExcept GET POST>
+    Deny from all
+</LimitExcept>
+
+# Proteção contra SQL injection (mod_security)
+<IfModule mod_security.c>
+    SecRuleEngine On
+    SecRequestBodyAccess On
+    SecRule REQUEST_URI ".*" "phase:1,id:1,t:none,block,msg:'SQL Injection Attempt'"
+</IfModule>

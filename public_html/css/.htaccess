@@ -1,0 +1,21 @@
+# Permitir acesso a arquivos CSS
+<FilesMatch "\.(css|map)$">
+    Allow from all
+</FilesMatch>
+
+# Headers de cache para CSS
+<FilesMatch "\.css$">
+    Header set Cache-Control "public, max-age=604800, immutable"
+    Header set Expires "max"
+</FilesMatch>
+
+# Bloquear execução de scripts
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .phps .cgi .pl .asp .aspx .shtml .shtm .fcgi .fpl .jsp
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .phps .cgi .pl .asp .aspx .shtml .shtm .fcgi .fpl .jsp
+
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|phps|cgi|pl|asp|aspx|shtml|shtm|fcgi|fpl|jsp)$">
+    Require all denied
+</FilesMatch>
+
+# Não permitir listagem de diretório
+Options -Indexes

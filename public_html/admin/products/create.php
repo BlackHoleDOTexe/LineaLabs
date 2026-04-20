@@ -119,23 +119,34 @@ $categorias = $productRepo->getAllCategories();
 
     <aside class="admin-sidebar">
         <h2 class="logo mb-4">Linea Labs</h2>
+        <div class="user-info mb-4 p-3 rounded-3" style="background: rgba(255, 255, 255, 0.05);">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #b8922e 0%, #d4b24a 100%);">
+                    <i class="bi bi-person-fill text-white"></i>
+                </div>
+                <div>
+                    <div class="small text-white-50">Administrador</div>
+                    <div class="fw-medium"><?= htmlspecialchars($_SESSION['admin_nome'] ?? 'Usuário', ENT_QUOTES, 'UTF-8') ?></div>
+                </div>
+            </div>
+        </div>
         <nav class="nav flex-column gap-1">
             <a class="nav-link" href="../index.php?aba=produtos">
-                <i class="bi bi-box-seam me-2"></i>Produtos
+                <i class="bi bi-box-seam"></i>Produtos
             </a>
             <a class="nav-link active" href="#">
-                <i class="bi bi-plus-circle me-2"></i>Novo Produto
+                <i class="bi bi-plus-circle"></i>Novo Produto
             </a>
             <a class="nav-link" href="../index.php?aba=orcamentos">
-                <i class="bi bi-calculator me-2"></i>Orçamentos
+                <i class="bi bi-calculator"></i>Orçamentos
             </a>
             <a class="nav-link" href="../index.php?aba=configuracoes">
-                <i class="bi bi-gear me-2"></i>Configurações
+                <i class="bi bi-gear"></i>Configurações
             </a>
         </nav>
         <div class="mt-auto pt-4">
             <a class="nav-link text-danger" href="../logout.php">
-                <i class="bi bi-box-arrow-right me-2"></i>Sair
+                <i class="bi bi-box-arrow-right"></i>Sair
             </a>
         </div>
     </aside>
@@ -143,11 +154,11 @@ $categorias = $productRepo->getAllCategories();
     <main class="admin-content">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="h3 mb-1">Novo Produto</h1>
-                <p class="text-muted mb-0">Preencha os dados e envie as imagens</p>
+                <h1 class="h3 mb-1"><i class="bi bi-plus-circle me-2 text-primary"></i>Novo Produto</h1>
+                <p class="text-muted mb-0">Preencha os dados e envie as imagens para o catálogo</p>
             </div>
-            <a href="../index.php?aba=produtos" class="btn btn-outline-dark btn-sm">
-                <i class="bi bi-arrow-left me-1"></i>Voltar
+            <a href="../index.php?aba=produtos" class="btn btn-outline-dark">
+                <i class="bi bi-arrow-left me-1"></i>Voltar aos Produtos
             </a>
         </div>
 
@@ -159,80 +170,119 @@ $categorias = $productRepo->getAllCategories();
         <?php endif; ?>
 
         <div class="admin-card">
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
                 <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
 
-                <div class="row g-3">
+                <div class="row g-4">
                     <div class="col-12">
-                        <label for="nome" class="form-label">Nome <span class="text-danger">*</span></label>
-                        <input type="text" id="nome" name="nome" class="form-control"
-                               value="<?= htmlspecialchars($_POST['nome'] ?? '') ?>"
-                               placeholder="Ex: Cruz Decorativa em MDF" required>
+                        <label for="nome" class="form-label fw-medium">Nome do Produto <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="bi bi-tag text-muted"></i>
+                            </span>
+                            <input type="text" id="nome" name="nome" class="form-control border-start-0"
+                                   value="<?= htmlspecialchars($_POST['nome'] ?? '') ?>"
+                                   placeholder="Ex: Cruz Decorativa em MDF" required>
+                        </div>
+                        <div class="form-text small">Nome que aparecerá no catálogo</div>
                     </div>
 
                     <div class="col-12">
-                        <label for="descricao" class="form-label">Descrição</label>
-                        <textarea id="descricao" name="descricao" class="form-control" rows="5"
-                                  placeholder="Descreva o produto em detalhes..."><?= htmlspecialchars($_POST['descricao'] ?? '') ?></textarea>
+                        <label for="descricao" class="form-label fw-medium">Descrição Detalhada</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent align-items-start pt-3 border-end-0">
+                                <i class="bi bi-text-paragraph text-muted"></i>
+                            </span>
+                            <textarea id="descricao" name="descricao" class="form-control border-start-0" rows="5"
+                                      placeholder="Descreva o produto em detalhes, materiais, acabamentos, usos..."><?= htmlspecialchars($_POST['descricao'] ?? '') ?></textarea>
+                        </div>
+                        <div class="form-text small">Esta descrição aparecerá na página de detalhes do produto</div>
                     </div>
 
                     <div class="col-md-6">
-                        <label for="dimensoes" class="form-label">Dimensões</label>
-                        <input type="text" id="dimensoes" name="dimensoes" class="form-control"
-                               value="<?= htmlspecialchars($_POST['dimensoes'] ?? '') ?>"
-                               placeholder="Ex: 30cm × 21cm × 9mm">
-                        <div class="form-text">Formato livre. Ex: 30cm × 21cm × 9mm</div>
+                        <label for="dimensoes" class="form-label fw-medium">Dimensões</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="bi bi-rulers text-muted"></i>
+                            </span>
+                            <input type="text" id="dimensoes" name="dimensoes" class="form-control border-start-0"
+                                   value="<?= htmlspecialchars($_POST['dimensoes'] ?? '') ?>"
+                                   placeholder="Ex: 30cm × 21cm × 9mm">
+                        </div>
+                        <div class="form-text small">Formato livre. Ex: 30cm × 21cm × 9mm</div>
                     </div>
 
                     <div class="col-md-3">
-                        <label for="preco" class="form-label">Preço (R$) <span class="text-danger">*</span></label>
-                        <input type="text" id="preco" name="preco" class="form-control"
-                               value="<?= htmlspecialchars($_POST['preco'] ?? '') ?>"
-                               placeholder="Ex: 29,90"
-                               inputmode="decimal" required>
+                        <label for="preco" class="form-label fw-medium">Preço (R$) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="bi bi-currency-dollar text-muted"></i>
+                            </span>
+                            <input type="text" id="preco" name="preco" class="form-control border-start-0"
+                                   value="<?= htmlspecialchars($_POST['preco'] ?? '') ?>"
+                                   placeholder="Ex: 29,90"
+                                   inputmode="decimal" required>
+                        </div>
+                        <div class="form-text small">Use ponto ou vírgula para decimais</div>
                     </div>
 
                     <div class="col-md-3">
-                        <label for="categoria" class="form-label">Categoria</label>
-                        <input type="text" id="categoria" name="categoria" class="form-control"
-                               value="<?= htmlspecialchars($_POST['categoria'] ?? '') ?>"
-                               placeholder="Ex: Decorativo"
-                               list="lista-categorias">
+                        <label for="categoria" class="form-label fw-medium">Categoria</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="bi bi-grid text-muted"></i>
+                            </span>
+                            <input type="text" id="categoria" name="categoria" class="form-control border-start-0"
+                                   value="<?= htmlspecialchars($_POST['categoria'] ?? '') ?>"
+                                   placeholder="Ex: Decorativo"
+                                   list="lista-categorias">
+                        </div>
                         <datalist id="lista-categorias">
                             <?php foreach ($categorias as $cat): ?>
                                 <option value="<?= htmlspecialchars($cat) ?>">
                             <?php endforeach; ?>
                         </datalist>
+                        <div class="form-text small">Categoria para organização no catálogo</div>
                     </div>
 
                     <div class="col-12">
-                        <label for="imagens" class="form-label">
-                            Imagens <span class="text-danger">*</span>
-                            <span class="text-muted small ms-1">
-                                (JPG, PNG, WebP ou GIF — até 10 MB cada, convertidas para .webp)
-                            </span>
+                        <label for="imagens" class="form-label fw-medium">
+                            Imagens do Produto <span class="text-danger">*</span>
                         </label>
-                        <input type="file" id="imagens" name="imagens[]" class="form-control"
-                               accept=".jpg,.jpeg,.png,.webp,.gif" multiple required>
-                        <div id="preview-imagens" class="d-flex flex-wrap gap-2 mt-2"></div>
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="bi bi-images text-muted"></i>
+                            </span>
+                            <input type="file" id="imagens" name="imagens[]" class="form-control border-start-0"
+                                   accept=".jpg,.jpeg,.png,.webp,.gif" multiple required>
+                        </div>
+                        <div class="form-text small">
+                            <i class="bi bi-info-circle me-1"></i>Formatos: JPG, PNG, WebP ou GIF — até 10 MB cada, serão convertidas automaticamente para .webp
+                        </div>
+                        <div id="preview-imagens" class="d-flex flex-wrap gap-3 mt-3"></div>
                     </div>
 
                     <div class="col-12">
-                        <div class="form-check">
+                        <div class="form-check p-3 rounded-3" style="background: #f8f9fa; border: 1px solid #e9ecef;">
                             <input type="checkbox" id="ativo" name="ativo" class="form-check-input"
                                    <?= isset($_POST['ativo']) || !isset($_POST['nome']) ? 'checked' : '' ?>>
-                            <label for="ativo" class="form-check-label">Produto ativo (visível no catálogo)</label>
+                            <label for="ativo" class="form-check-label fw-medium">
+                                <i class="bi bi-eye me-1"></i>Produto ativo (visível no catálogo)
+                            </label>
+                            <div class="form-text small mt-1">Desmarque para ocultar o produto temporariamente</div>
                         </div>
                     </div>
                 </div>
 
                 <hr class="my-4">
 
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-dark">
-                        <i class="bi bi-save me-1"></i>Salvar Produto
+                <div class="d-flex gap-3">
+                    <button type="submit" class="btn btn-dark px-4">
+                        <i class="bi bi-save me-2"></i>Salvar Produto
                     </button>
-                    <a href="../index.php?aba=produtos" class="btn btn-outline-secondary">Cancelar</a>
+                    <a href="../index.php?aba=produtos" class="btn btn-outline-secondary px-4">
+                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                    </a>
                 </div>
             </form>
         </div>
@@ -245,21 +295,63 @@ document.getElementById('imagens').addEventListener('change', function () {
     const container = document.getElementById('preview-imagens');
     container.innerHTML = '';
 
-    Array.from(this.files).forEach(file => {
+    if (this.files.length === 0) {
+        container.innerHTML = '<div class="text-muted small p-3"><i class="bi bi-info-circle me-1"></i>Nenhuma imagem selecionada</div>';
+        return;
+    }
+
+    Array.from(this.files).forEach((file, index) => {
         if (!file.type.startsWith('image/')) return;
 
         const reader = new FileReader();
         reader.onload = e => {
+            const card = document.createElement('div');
+            card.className = 'preview-card';
+            card.style.cssText = 'width: 120px; position: relative;';
+
             const img = document.createElement('img');
             img.src = e.target.result;
-            img.className = 'rounded border';
-            img.style.cssText = 'width:80px;height:80px;object-fit:cover;';
+            img.className = 'rounded-3 border';
+            img.style.cssText = 'width:100%;height:120px;object-fit:cover;';
             img.title = file.name;
-            container.appendChild(img);
+
+            const badge = document.createElement('div');
+            badge.className = 'badge bg-dark position-absolute top-0 end-0 m-1';
+            badge.style.cssText = 'font-size: 0.7rem;';
+            badge.textContent = `#${index + 1}`;
+
+            const name = document.createElement('div');
+            name.className = 'small text-truncate mt-1 text-center';
+            name.style.cssText = 'max-width: 120px;';
+            name.title = file.name;
+            name.textContent = file.name.length > 15 ? file.name.substring(0, 12) + '...' : file.name;
+
+            card.appendChild(img);
+            card.appendChild(badge);
+            card.appendChild(name);
+            container.appendChild(card);
         };
         reader.readAsDataURL(file);
     });
 });
+
+// Validação do formulário
+document.querySelector('form.needs-validation').addEventListener('submit', function (event) {
+    if (!this.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    this.classList.add('was-validated');
+}, false);
 </script>
+
+<style>
+.preview-card {
+    transition: transform 0.2s ease;
+}
+.preview-card:hover {
+    transform: translateY(-5px);
+}
+</style>
 </body>
 </html>

@@ -1,0 +1,66 @@
+# Proteções específicas para área administrativa
+Options -Indexes
+
+# Autenticação básica (opcional - descomente se quiser camada extra de segurança)
+# AuthType Basic
+# AuthName "Área Administrativa"
+# AuthUserFile /caminho/absoluto/para/.htpasswd
+# Require valid-user
+
+# Bloquear acesso direto a arquivos PHP exceto index.php e login.php
+<FilesMatch "\.php$">
+    Order Deny,Allow
+    Deny from all
+    Allow from 127.0.0.1
+</FilesMatch>
+
+<FilesMatch "^(index|login)\.php$">
+    Order Allow,Deny
+    Allow from all
+</FilesMatch>
+
+# Headers de segurança adicionais para admin
+Header always set X-Frame-Options "DENY"
+Header always set Content-Security-Policy "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline';"
+
+# Cache control rigoroso para admin
+<FilesMatch "\.(php|html|htm)$">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+    Header set Expires "Thu, 01 Jan 1970 00:00:00 GMT"
+</FilesMatch>
+
+# Bloquear acesso a arquivos de configuração e logs
+<FilesMatch "\.(env|config|ini|log|sql|bak|old|backup)$">
+    Require all denied
+</FilesMatch>
+
+# Rate limiting básico com mod_evasive (se disponível)
+<IfModule mod_evasive20.c>
+    DOSHashTableSize 3097
+    DOSPageCount 5
+    DOSSiteCount 50
+    DOSPageInterval 2
+    DOSSiteInterval 2
+    DOSBlockingPeriod 600
+</IfModule>
+
+# Bloquear user agents conhecidos de scanners
+SetEnvIfNoCase User-Agent "(nikto|wikto|acunetix|nessus|paros|w3af|sqlninja|havij|sqlmap)" bad_agent
+Deny from env=bad_agent
+
+# Limitar IPs permitidos (opcional - descomente e ajuste)
+# Order Deny,Allow
+# Deny from all
+# Allow from 192.168.1.0/24
+# Allow from 127.0.0.1
+
+# Proteção contra directory traversal
+RewriteEngine On
+RewriteCond %{REQUEST_URI} (\.\./|\.\.$) [NC]
+RewriteRule .* - [F,L]
+
+# Forçar HTTPS para admin (se estiver usando SSL)
+# RewriteEngine On
+# RewriteCond %{HTTPS} off
+# RewriteRule ^(.*)$ https://%{HTTP_HOST}/admin/$1 [R=301,L]

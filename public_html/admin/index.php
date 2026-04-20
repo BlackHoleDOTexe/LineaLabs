@@ -162,20 +162,31 @@ if (isset($_GET['erro'])) {
 
     <aside class="admin-sidebar">
         <h2 class="logo mb-4">Linea Labs</h2>
+        <div class="user-info mb-4 p-3 rounded-3" style="background: rgba(255, 255, 255, 0.05);">
+            <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px; background: linear-gradient(135deg, #b8922e 0%, #d4b24a 100%);">
+                    <i class="bi bi-person-fill text-white"></i>
+                </div>
+                <div>
+                    <div class="small text-white-50">Administrador</div>
+                    <div class="fw-medium"><?= htmlspecialchars($_SESSION['admin_nome'] ?? 'Usuário', ENT_QUOTES, 'UTF-8') ?></div>
+                </div>
+            </div>
+        </div>
         <nav class="nav flex-column gap-1">
             <a class="nav-link <?= $abaAtiva === 'produtos'      ? 'active' : '' ?>" href="?aba=produtos">
-                <i class="bi bi-box-seam me-2"></i>Produtos
+                <i class="bi bi-box-seam"></i>Produtos
             </a>
             <a class="nav-link <?= $abaAtiva === 'orcamentos'    ? 'active' : '' ?>" href="?aba=orcamentos">
-                <i class="bi bi-calculator me-2"></i>Orçamentos
+                <i class="bi bi-calculator"></i>Orçamentos
             </a>
             <a class="nav-link <?= $abaAtiva === 'configuracoes' ? 'active' : '' ?>" href="?aba=configuracoes">
-                <i class="bi bi-gear me-2"></i>Configurações
+                <i class="bi bi-gear"></i>Configurações
             </a>
         </nav>
         <div class="mt-auto pt-4">
             <a class="nav-link text-danger" href="logout.php">
-                <i class="bi bi-box-arrow-right me-2"></i>Sair
+                <i class="bi bi-box-arrow-right"></i>Sair
             </a>
         </div>
     </aside>
@@ -188,8 +199,8 @@ if (isset($_GET['erro'])) {
         <!-- ====================================================== -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="h3 mb-1">Produtos</h1>
-                <p class="text-muted mb-0">Gerencie o catálogo de produtos</p>
+                <h1 class="h3 mb-1"><i class="bi bi-box-seam me-2 text-primary"></i>Produtos</h1>
+                <p class="text-muted mb-0">Gerencie o catálogo de produtos do site</p>
             </div>
             <a href="products/create.php" class="btn btn-dark">
                 <i class="bi bi-plus-lg me-1"></i>Novo Produto
@@ -262,8 +273,8 @@ if (isset($_GET['erro'])) {
         <!-- ABA: ORÇAMENTOS                                         -->
         <!-- ====================================================== -->
         <div class="mb-4">
-            <h1 class="h3 mb-1">Calculadora de Orçamento</h1>
-            <p class="text-muted mb-0">Fórmula: <code>(Custo Material + Custo Máquina) × Markup</code></p>
+            <h1 class="h3 mb-1"><i class="bi bi-calculator me-2 text-success"></i>Calculadora de Orçamento</h1>
+            <p class="text-muted mb-0">Fórmula: <code class="bg-light p-1 rounded">(Custo Material + Custo Máquina) × Markup</code></p>
         </div>
 
         <?php if ($mensagemOrc !== ''): ?>
@@ -325,10 +336,13 @@ if (isset($_GET['erro'])) {
                                 <input type="number" name="custo_minuto_maquina" id="orc-custo-maq" class="form-control orc-calc" step="0.0001" min="0" value="<?= htmlspecialchars($config['custo_minuto_maquina']) ?>" required>
                             </div>
                         </div>
-                        <div class="mt-4 p-4 rounded-3 bg-dark text-white text-center">
-                            <div class="small text-white-50 mb-1">Preço simulado</div>
-                            <div class="display-6 fw-bold" id="orc-preview">R$ 0,00</div>
-                            <div class="small text-white-50 mt-1" id="orc-formula-desc">Preencha os campos para calcular</div>
+                        <div class="mt-4 p-4 rounded-3 bg-dark text-white text-center position-relative overflow-hidden">
+                            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at 30% 20%, rgba(184, 146, 46, 0.2) 0%, transparent 50%);"></div>
+                            <div class="position-relative z-1">
+                                <div class="small text-white-50 mb-1">Preço simulado</div>
+                                <div class="display-6 fw-bold" id="orc-preview">R$ 0,00</div>
+                                <div class="small text-white-50 mt-1" id="orc-formula-desc">Preencha os campos para calcular</div>
+                            </div>
                         </div>
                         <input type="hidden" name="preco_calculado" id="orc-preco-hidden" value="0">
                         <div class="d-flex gap-2 mt-3">
@@ -376,10 +390,10 @@ if (isset($_GET['erro'])) {
                                                 R$&nbsp;<?= number_format((float)$orc['preco_calculado'], 2, ',', '.') ?>
                                             </td>
                                             <td class="text-end">
-                                                <div class="d-flex gap-1 justify-content-end">
+                                                <div class="d-flex gap-2 justify-content-end">
                                                     <button
                                                         type="button"
-                                                        class="btn btn-outline-secondary btn-sm btn-editar-orc"
+                                                        class="btn btn-outline-primary btn-sm btn-editar-orc d-flex align-items-center gap-1"
                                                         title="Editar orçamento"
                                                         data-id="<?= (int)$orc['id'] ?>"
                                                         data-cliente="<?= htmlspecialchars($orc['nome_cliente']    ?? '', ENT_QUOTES, 'UTF-8') ?>"
@@ -390,9 +404,12 @@ if (isset($_GET['erro'])) {
                                                         data-markup="<?= (float)$orc['markup'] ?>"
                                                         data-custo-mat="<?= (float)$orc['custo_material_cm2'] ?>"
                                                         data-custo-maq="<?= (float)$orc['custo_minuto_maquina'] ?>"
-                                                    ><i class="bi bi-pencil"></i></button>
+                                                    >
+                                                        <i class="bi bi-pencil"></i>Editar
+                                                    </button>
                                                     <a href="quotes/delete.php?id=<?= (int)$orc['id'] ?>"
-                                                       class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1" title="Excluir">
+                                                       class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1" title="Excluir"
+                                                       onclick="return confirm('Tem certeza que deseja excluir este orçamento?')">
                                                         <i class="bi bi-trash3"></i>Excluir
                                                     </a>
                                                 </div>
@@ -412,7 +429,7 @@ if (isset($_GET['erro'])) {
         <!-- ABA: CONFIGURAÇÕES                                      -->
         <!-- ====================================================== -->
         <div class="mb-4">
-            <h1 class="h3 mb-1">Configurações Globais</h1>
+            <h1 class="h3 mb-1"><i class="bi bi-gear me-2 text-warning"></i>Configurações Globais</h1>
             <p class="text-muted mb-0">Dados fiscais e variáveis de custo da calculadora</p>
         </div>
 
@@ -434,43 +451,46 @@ if (isset($_GET['erro'])) {
             <div class="row g-4">
                 <div class="col-lg-6">
                     <div class="admin-card h-100">
-                        <h2 class="h5 mb-4"><i class="bi bi-building me-2 text-muted"></i>Dados Fiscais</h2>
+                        <h2 class="h5 mb-4"><i class="bi bi-building me-2" style="color: #6f42c1;"></i>Dados Fiscais</h2>
                         <div class="mb-3">
-                            <label class="form-label">Razão Social</label>
+                            <label class="form-label fw-medium">Razão Social</label>
                             <input type="text" name="razao_social" class="form-control" value="<?= htmlspecialchars($config['razao_social']) ?>" required>
+                            <div class="form-text small">Nome legal completo da empresa</div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Nome Fantasia</label>
+                            <label class="form-label fw-medium">Nome Fantasia</label>
                             <input type="text" name="nome_fantasia" class="form-control" value="<?= htmlspecialchars($config['nome_fantasia']) ?>" required>
+                            <div class="form-text small">Nome comercial utilizado no site</div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Inscrição Estadual</label>
+                            <label class="form-label fw-medium">Inscrição Estadual</label>
                             <input type="text" name="inscricao_estadual" class="form-control" value="<?= htmlspecialchars($config['inscricao_estadual']) ?>">
+                            <div class="form-text small">Registro estadual para emissão de notas fiscais</div>
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="admin-card h-100">
-                        <h2 class="h5 mb-4"><i class="bi bi-calculator me-2 text-muted"></i>Variáveis de Custo</h2>
+                        <h2 class="h5 mb-4"><i class="bi bi-calculator me-2" style="color: #198754;"></i>Variáveis de Custo</h2>
                         <p class="text-muted small mb-3">Esses valores são usados como padrão na calculadora de orçamentos.</p>
                         <div class="mb-3">
-                            <label class="form-label">Custo do MDF por cm² <span class="text-muted">(R$)</span></label>
+                            <label class="form-label fw-medium">Custo do MDF por cm² <span class="text-muted">(R$)</span></label>
                             <input type="number" name="custo_material_cm2" class="form-control" step="0.0001" min="0" value="<?= htmlspecialchars($config['custo_material_cm2']) ?>" required>
-                            <div class="form-text">Custo da matéria-prima por centímetro quadrado de MDF.</div>
+                            <div class="form-text small">Custo da matéria-prima por centímetro quadrado de MDF.</div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Custo por minuto de máquina <span class="text-muted">(R$)</span></label>
+                            <label class="form-label fw-medium">Custo por minuto de máquina <span class="text-muted">(R$)</span></label>
                             <input type="number" name="custo_minuto_maquina" class="form-control" step="0.0001" min="0" value="<?= htmlspecialchars($config['custo_minuto_maquina']) ?>" required>
-                            <div class="form-text">Custo operacional da máquina laser por minuto.</div>
+                            <div class="form-text small">Custo operacional da máquina laser por minuto.</div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Markup padrão</label>
+                            <label class="form-label fw-medium">Markup padrão</label>
                             <input type="number" name="markup_padrao" class="form-control" step="0.1" min="0.1" value="<?= htmlspecialchars($config['markup_padrao']) ?>" required>
-                            <div class="form-text">Multiplicador de precificação. Ex: <code>3</code> = 3× o custo total.</div>
+                            <div class="form-text small">Multiplicador de precificação. Ex: <code>3</code> = 3× o custo total.</div>
                         </div>
-                        <div class="p-3 bg-light rounded small text-muted">
-                            <strong>Fórmula aplicada:</strong><br>
-                            <code>Preço = (Custo_mat × Área_cm² + Custo_maq × Tempo_min) × Markup</code>
+                        <div class="p-3 rounded-3 small text-muted mt-4" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-left: 4px solid #b8922e;">
+                            <strong class="d-block mb-2">Fórmula aplicada:</strong>
+                            <code class="d-block p-2 bg-white rounded-2 border">Preço = (Custo_mat × Área_cm² + Custo_maq × Tempo_min) × Markup</code>
                         </div>
                     </div>
                 </div>

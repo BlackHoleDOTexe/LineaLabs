@@ -1,5 +1,109 @@
+# Configurações sensíveis
 .env
 .env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
+.env.staging
+.env.example
+.env.dist
+
+# Diretórios de uploads e arquivos gerados pelo usuário
 uploads/
 private/
+private/uploads/
+private/cache/
+private/logs/
+private/sessions/
+
+# Arquivos de IDE e editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Logs e arquivos temporários
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.pid
+*.pid.lock
+
+# Dependências do Composer (se houver)
+vendor/
+composer.lock
+
+# Dependências do Node/npm
+node_modules/
+package-lock.json
+yarn.lock
+
+# Cache e arquivos de build
+.cache/
+.build/
+dist/
+public/build/
+
+# Arquivos de configuração local
+config.local.php
+database.local.php
+
+# Arquivos de sessão PHP
+sess_*
+php_sess_*
+*sess*
+*session*
+
+# Arquivos de backup
+*.bak
+*.backup
+*.old
+*.orig
+
+# Arquivos de upload temporários
+*.tmp
+temp/
+tmp/
+
+# Arquivos de banco de dados
+*.sqlite
+*.db
+*.sql
+
+# Arquivos do OpenClaude
+.openclaude/
 .openclaud/
+.claude/
+
+# Arquivos do sistema operacional
+.DS_Store
+Desktop.ini
+._*
+
+# Arquivos de log do PHP
+php_error.log
+error_log
+
+# Arquivos de cache do PHP
+opcache-*
+apc-*
+
+# Arquivos de cache do navegador
+.phpstorm.meta.php
+.idea/
+
+# Arquivos de configuração específicos do projeto
+config.php
+database.php
+
+# Exceção: manter config.php.example se existir
+!config.php.example
+!database.php.example
+
+# Manter todos os arquivos .htaccess (são configurações de segurança importantes)
+!.htaccess

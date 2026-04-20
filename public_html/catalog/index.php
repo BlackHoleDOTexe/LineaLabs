@@ -194,29 +194,35 @@ function renderizarPaginacao(
       ?>
       <div class="col-6 col-md-4 col-lg-3">
         <div class="card h-100">
-          <img
-            src="/media/image.php?file=<?= urlencode($primeiraImagem) ?>"
-            class="card-img-top produto-card-img"
-            alt="<?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?>"
-          >
-          <div class="card-body d-flex flex-column">
+          <div class="card-img-container">
+            <span class="card-category">
+              <?= htmlspecialchars($produto['categoria'] ?? 'Produto', ENT_QUOTES, 'UTF-8') ?>
+            </span>
+            <img
+              src="/media/image.php?file=<?= urlencode($primeiraImagem) ?>"
+              class="produto-card-img"
+              alt="<?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?>"
+              loading="lazy"
+            >
+          </div>
+          <div class="card-body">
             <h5 class="product-title">
               <?= htmlspecialchars($produto['nome'], ENT_QUOTES, 'UTF-8') ?>
             </h5>
-            <p class="card-text product-description">
-              <?= htmlspecialchars(mb_strimwidth($produto['descricao'] ?? '', 0, 80, '...'), ENT_QUOTES, 'UTF-8') ?>
+            <p class="product-description">
+              <?= htmlspecialchars(mb_strimwidth($produto['descricao'] ?? '', 0, 100, '...'), ENT_QUOTES, 'UTF-8') ?>
             </p>
-            <div class="mt-auto">
-              <p class="preco text-end mb-2">
-                R$ <?= number_format((float)($produto['preco'] ?? 0), 2, ',', '.') ?>
+            <div class="price-container">
+              <p class="preco">
+                <?= number_format((float)($produto['preco'] ?? 0), 2, ',', '.') ?>
               </p>
               <button
                 type="button"
-                class="btn btn-gold w-100"
+                class="btn btn-gold"
                 data-bs-toggle="modal"
                 data-bs-target="#modalProduto<?= $produto['id'] ?>"
               >
-                Ver detalhes
+                <i class="bi bi-eye me-1"></i>Ver detalhes
               </button>
             </div>
           </div>

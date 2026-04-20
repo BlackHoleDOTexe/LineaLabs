@@ -12,8 +12,9 @@
    Layout base
    ============================================================ */
 .admin-body {
-  background: #f5f6f8;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .admin-wrapper {
@@ -22,50 +23,82 @@
 }
 
 /* ============================================================
-   Sidebar
+   Sidebar Moderna
    ============================================================ */
 .admin-sidebar {
-  width: 240px;
-  min-width: 240px;
-  background: #111;
+  width: 260px;
+  min-width: 260px;
+  background: linear-gradient(180deg, #1a1a1a 0%, #2d2d2d 100%);
   color: #fff;
-  padding: 24px 16px;
+  padding: 2rem 1.5rem;
   display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
   height: 100vh;
   overflow-y: auto;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 5px 0 20px rgba(0, 0, 0, 0.1);
 }
 
 .admin-sidebar .logo {
   font-family: "Moderna", sans-serif;
-  font-size: 1.4rem;
-  letter-spacing: 0.04em;
+  font-size: 1.6rem;
+  letter-spacing: 1px;
+  color: #fff;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.admin-sidebar .nav {
+  gap: 0.5rem;
 }
 
 .admin-sidebar .nav-link {
   color: #b0b0b0;
-  border-radius: 10px;
-  padding: 9px 12px;
-  font-size: 0.875rem;
-  transition: background 0.15s, color 0.15s;
+  border-radius: 12px;
+  padding: 0.875rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  border: 1px solid transparent;
 }
 
 .admin-sidebar .nav-link:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(5px);
 }
 
 .admin-sidebar .nav-link.active {
-  background: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, #b8922e 0%, #d4b24a 100%);
   color: #fff;
-  font-weight: 500;
+  font-weight: 600;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(184, 146, 46, 0.3);
+}
+
+.admin-sidebar .nav-link i {
+  font-size: 1.1rem;
+  width: 24px;
+  text-align: center;
+}
+
+.admin-sidebar .nav-link.text-danger {
+  color: #ff6b7a;
+  margin-top: auto;
+  border: 1px solid rgba(255, 107, 122, 0.2);
 }
 
 .admin-sidebar .nav-link.text-danger:hover {
   background: rgba(220, 53, 69, 0.15);
-  color: #ff6b7a !important;
+  color: #ff6b7a;
+  border-color: rgba(255, 107, 122, 0.3);
 }
 
 /* ============================================================
@@ -73,51 +106,233 @@
    ============================================================ */
 .admin-content {
   flex: 1;
-  padding: 28px 32px;
+  padding: 2.5rem 3rem;
   min-width: 0;
+  overflow-x: hidden;
+}
+
+@media (max-width: 1200px) {
+  .admin-content {
+    padding: 2rem;
+  }
 }
 
 /* ============================================================
-   Card admin
+   Cabeçalhos
+   ============================================================ */
+.admin-content h1.h3 {
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 0.5rem;
+  font-size: 1.75rem;
+}
+
+.admin-content .text-muted.mb-0 {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+/* ============================================================
+   Cards Admin Modernos
    ============================================================ */
 .admin-card {
   background: #fff;
-  border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.admin-card:hover {
+  transform: translateY(-5px);
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.admin-card h2.h5 {
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+  font-size: 1.25rem;
 }
 
 /* ============================================================
-   Tabela de produtos
+   Formulários
    ============================================================ */
-.table > :not(caption) > * > * {
+.admin-card .form-label {
+  font-weight: 500;
+  color: #444;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.admin-card .form-control,
+.admin-card .form-select {
+  border: 1.5px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.admin-card .form-control:focus,
+.admin-card .form-select:focus {
+  border-color: #b8922e;
+  box-shadow: 0 0 0 3px rgba(184, 146, 46, 0.15);
+}
+
+.admin-card .form-control-sm {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 10px;
+}
+
+/* ============================================================
+   Botões
+   ============================================================ */
+.admin-card .btn-dark {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+}
+
+.admin-card .btn-dark:hover {
+  background: linear-gradient(135deg, #2d2d2d 0%, #3d3d3d 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.admin-card .btn-outline-secondary {
+  border: 1.5px solid #dee2e6;
+  color: #666;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.admin-card .btn-outline-secondary:hover {
+  background: #f8f9fa;
+  border-color: #b8922e;
+  color: #b8922e;
+}
+
+/* ============================================================
+   Tabelas
+   ============================================================ */
+.admin-card .table {
+  margin-bottom: 0;
+}
+
+.admin-card .table thead th {
+  background: #f8f9fa;
+  border-bottom: 2px solid #e9ecef;
+  font-weight: 600;
+  color: #444;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.875rem 1rem;
+}
+
+.admin-card .table tbody td {
+  padding: 1rem;
   vertical-align: middle;
+  border-color: #f0f0f0;
+  font-size: 0.9rem;
+}
+
+.admin-card .table tbody tr:hover {
+  background: #f8f9fa;
 }
 
 /* ============================================================
-   Calculadora — preview do preço
+   Calculadora de Orçamento
    ============================================================ */
-#orc-preview {
+.admin-card .bg-dark {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+  border: none;
+  border-radius: 16px;
+  padding: 1.5rem !important;
+}
+
+.admin-card #orc-preview {
   font-variant-numeric: tabular-nums;
-  transition: color 0.2s;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.admin-card #orc-formula-desc {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+/* ============================================================
+   Alertas
+   ============================================================ */
+.alert {
+  border-radius: 14px;
+  border: none;
+  padding: 1rem 1.25rem;
+  font-size: 0.95rem;
+}
+
+.alert-success {
+  background: rgba(25, 135, 84, 0.1);
+  color: #198754;
+  border-left: 4px solid #198754;
+}
+
+.alert-danger {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+  border-left: 4px solid #dc3545;
+}
+
+.alert i {
+  font-size: 1.1rem;
+}
+
+/* ============================================================
+   Badges e elementos pequenos
+   ============================================================ */
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+  font-size: 0.75em;
 }
 
 /* ============================================================
    Responsividade
    ============================================================ */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .admin-sidebar {
-    width: 200px;
-    min-width: 200px;
-    padding: 16px 10px;
+    width: 220px;
+    min-width: 220px;
+    padding: 1.5rem 1rem;
   }
 
   .admin-content {
-    padding: 16px;
+    padding: 1.5rem;
+  }
+
+  .admin-card {
+    padding: 1.5rem;
   }
 }
 
-@media (max-width: 576px) {
+@media (max-width: 768px) {
   .admin-wrapper {
     flex-direction: column;
   }
@@ -127,26 +342,68 @@
     min-width: 100%;
     height: auto;
     position: static;
+    padding: 1rem;
     flex-direction: row;
     align-items: center;
-    padding: 12px 16px;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 0.5rem;
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   .admin-sidebar .logo {
-    margin-bottom: 0 !important;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
     margin-right: auto;
+    font-size: 1.4rem;
   }
 
-  .admin-sidebar nav {
+  .admin-sidebar .nav {
     flex-direction: row !important;
     flex-wrap: wrap;
-    gap: 4px !important;
+    gap: 0.5rem !important;
+  }
+
+  .admin-sidebar .nav-link {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .admin-sidebar .nav-link:hover {
+    transform: translateY(-2px);
   }
 
   .admin-sidebar .mt-auto {
     margin-top: 0 !important;
     padding-top: 0 !important;
+  }
+
+  .admin-content {
+    padding: 1.25rem;
+  }
+
+  .admin-card {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .admin-content h1.h3 {
+    font-size: 1.5rem;
+  }
+
+  .admin-card h2.h5 {
+    font-size: 1.1rem;
+  }
+
+  .admin-card #orc-preview {
+    font-size: 2rem;
+  }
+
+  .row.g-4 {
+    --bs-gutter-x: 1rem;
+    --bs-gutter-y: 1rem;
   }
 }
