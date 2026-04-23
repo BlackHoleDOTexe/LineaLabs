@@ -7,17 +7,13 @@ Options -Indexes
 # AuthUserFile /caminho/absoluto/para/.htpasswd
 # Require valid-user
 
-# Bloquear acesso direto a arquivos PHP exceto index.php e login.php
-<FilesMatch "\.php$">
-    Order Deny,Allow
-    Deny from all
-    Allow from 127.0.0.1
+# Proteger arquivos de configuração e backup
+<FilesMatch "^(config|test|backup|setup)\.php$">
+    Require all denied
 </FilesMatch>
 
-<FilesMatch "^(index|login)\.php$">
-    Order Allow,Deny
-    Allow from all
-</FilesMatch>
+# Permitir acesso a arquivos PHP do admin (protegidos por autenticação na aplicação)
+# A segurança é implementada no nível da aplicação via session/auth
 
 # Headers de segurança adicionais para admin
 Header always set X-Frame-Options "DENY"

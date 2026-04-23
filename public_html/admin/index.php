@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar_orcamento'])) 
 // ============================================================
 $config     = $configRepo->findAll();
 $categorias = $productRepo->getAllCategories();
-$orcamentos = $quoteRepo->findRecent(10);
+$orcamentos = $quoteRepo->findAll();
 
 // ============================================================
 // Aba ativa + mensagens de redirect
@@ -363,7 +363,7 @@ if (isset($_GET['erro'])) {
                     <?php if (empty($orcamentos)): ?>
                         <p class="text-muted small">Nenhum orçamento salvo ainda.</p>
                     <?php else: ?>
-                        <div class="table-responsive">
+                        <div class="table-responsive orc-list-scroll">
                             <table class="table table-sm align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>

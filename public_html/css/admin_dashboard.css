@@ -407,3 +407,17 @@
     --bs-gutter-y: 1rem;
   }
 }
+
+/* Lista de últimos orçamentos — altura limitada com scroll interno */
+.orc-list-scroll {
+    max-height: 75vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.orc-list-scroll thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: var(--bs-table-bg, #f8f9fa);
+}

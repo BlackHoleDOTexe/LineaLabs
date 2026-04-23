@@ -44,12 +44,12 @@ Header always set X-Content-Type-Options "nosniff"
     Require all denied
 </FilesMatch>
 
-# Bloquear user agents maliciosos
-SetEnvIfNoCase User-Agent "libwww-perl|wget|curl|httrack|harvest|extract|grab|miner|scanner" bad_bot
+# Bloquear user agents maliciosos (mas permitir curl/wget para uploads/scripts)
+SetEnvIfNoCase User-Agent "libwww-perl|httrack|harvest|extract|grab|miner|scanner" bad_bot
 Deny from env=bad_bot
 
-# Limitar métodos HTTP permitidos
-<LimitExcept GET POST>
+# Limitar métodos HTTP permitidos (permitir PUT/DELETE para APIs)
+<LimitExcept GET POST PUT DELETE HEAD OPTIONS>
     Deny from all
 </LimitExcept>
 

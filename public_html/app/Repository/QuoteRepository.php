@@ -26,6 +26,11 @@ class QuoteRepository
         return $stmt->fetchAll();
     }
 
+    public function findAll(): array
+    {
+        return $this->pdo->query("SELECT * FROM orcamentos ORDER BY criado_em DESC")->fetchAll();
+    }
+
     public function create(array $data): void
     {
         $this->pdo->prepare(
